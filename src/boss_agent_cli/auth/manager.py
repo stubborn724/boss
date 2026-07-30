@@ -106,6 +106,19 @@ class AuthManager:
 		self._token = token
 		return {**token, "_method": method}
 
+	def login_in_browser(self, *, timeout: int = 120) -> dict[str, Any]:
+		"""在官方平台页面完成一次显式浏览器登录。
+
+		本地 Web 控制台的“登录”按钮必须给用户可见、可操作的官方登录窗口，
+		不能复用普通 ``login`` 的 Cookie 提取或纯 HTTP 二维码降级路径；后两者
+		适合 CLI 自动探测，却无法在控制台页面中呈现授权过程。认证成功后仍通过
+		同一 TokenStore 持久化，避免 Web 与 CLI 形成两套登录态。
+		"""
+		token = login_via_browser(timeout=timeout, platform=self._platform)
+		self._store.save(token)
+		self._token = token
+		return {**token, "_method": "浏览器扫码登录"}
+
 	def _has_primary_cookie(self, token: dict[str, Any]) -> bool:
 		cookies = token.get("cookies", {})
 		if self._platform == "zhilian":

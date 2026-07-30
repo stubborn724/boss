@@ -128,6 +128,30 @@ def test_login_uses_qr_httpx_when_cdp_unavailable(
 
 @patch("boss_agent_cli.auth.manager.TokenStore")
 @patch("boss_agent_cli.auth.manager.login_via_browser")
+@patch("boss_agent_cli.auth.manager.extract_cookies")
+def test_login_in_browser_opens_official_login_without_cookie_or_qr_fallback(
+	mock_extract,
+	mock_login_via_browser,
+	mock_store_cls,
+	tmp_path,
+):
+	"""Web 控制台登录必须显式打开官方页面，不能退化为不可见的二维码轮询。"""
+	store = _make_store()
+	mock_store_cls.return_value = store
+	mock_login_via_browser.return_value = {"cookies": {"wt2": "browser-cookie"}, "stoken": "browser-token"}
+
+	manager = AuthManager(tmp_path)
+
+	result = manager.login_in_browser(timeout=90)
+
+	mock_extract.assert_not_called()
+	mock_login_via_browser.assert_called_once_with(timeout=90, platform="zhipin")
+	store.save.assert_called_once_with({"cookies": {"wt2": "browser-cookie"}, "stoken": "browser-token"})
+	assert result["_method"] == "浏览器扫码登录"
+
+
+@patch("boss_agent_cli.auth.manager.TokenStore")
+@patch("boss_agent_cli.auth.manager.login_via_browser")
 @patch("boss_agent_cli.auth.manager.login_via_cdp")
 @patch("boss_agent_cli.auth.manager.probe_cdp")
 @patch("boss_agent_cli.auth.manager.extract_cookies")

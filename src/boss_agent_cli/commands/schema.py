@@ -71,6 +71,7 @@ _ROLE_BOTH_COMMANDS = {
 	"clean",
 	"cities",
 	"platforms",
+	"web",
 }
 
 _CANDIDATE_COMMANDS = {
@@ -280,7 +281,7 @@ def _format_mcp_tools(data: dict[str, Any]) -> list[dict[str, Any]]:
 
 SCHEMA_DATA = {
 	"name": "boss-agent-cli",
-	"description": "BOSS直聘本地辅助工具，共 38 个顶层命令。默认低风险模式聚焦只读、本地辅助、用户主动触发；自动触达、批量操作和候选人个人信息处理默认受限。",
+	"description": "BOSS直聘本地辅助工具，共 39 个顶层命令。默认低风险模式聚焦只读、本地辅助、用户主动触发；自动触达、批量操作和候选人个人信息处理默认受限。",
 	"commands": {
 		"login": {
 			"description": "按当前平台登录（zhipin / zhilian）。默认低风险模式仅用于用户主动触发的本地辅助与只读命令，不用于规避平台风控。",
@@ -297,6 +298,15 @@ SCHEMA_DATA = {
 					"description": "强制 CDP 模式（跳过 Cookie 提取，CDP 不可用直接报错）",
 				},
 			},
+		},
+		"web": {
+			"description": "启动仅绑定 127.0.0.1 的本地招聘简历控制台。登录在平台官网完成，控制台不展示凭据或简历正文，且不通过 MCP 暴露。",
+			"args": [],
+			"options": {
+				"--port": {"type": "int", "default": 8765, "description": "本地控制台端口（仅绑定 127.0.0.1）"},
+				"--login-timeout": {"type": "int", "default": 120, "description": "官方页面登录等待秒数"},
+			},
+			"mcp_exposed": False,
 		},
 		"platforms": {
 			"description": "列出本地已注册平台与能力状态；只读本地元数据，不触发登录、浏览器、CDP 或网络请求",
@@ -1039,6 +1049,7 @@ SCHEMA_DATA = {
 			"subcommands": {
 				"applications": "受限：查看候选人投递申请列表",
 				"resume": "受限：查看候选人在线简历或发起联系方式交换",
+				"download-resume": "受限：把单个候选人在线简历导出为本地 Markdown 文件（不进 MCP）",
 				"chat": "受限：查看与候选人的沟通列表（含未读数和最近消息摘要）",
 				"chatmsg": "受限：查看与指定候选人的聊天消息历史",
 				"last-messages": "受限：批量查看候选人最近消息摘要",

@@ -10,6 +10,7 @@ build/
 .worktrees/
 .claude/
 docs/superpowers/
+.superpowers/
 my-boss-profile.md
 CLAUDE.md
 AGENTS.md

@@ -101,6 +101,7 @@
 | 聊天消息历史 | `boss hr chatmsg <friend_id>` | 是 | 受限（默认阻断） |
 | 最近消息摘要 | `boss hr last-messages [--friend-id <id>]` | 是 | 受限（默认阻断） |
 | 在线简历查看 | `boss hr resume <geek_id> --selector <csel_...> --security-id <id>` | 是 | 受限（默认阻断） |
+| 在线简历下载到本地 | `boss hr download-resume <geek_id> --job-id <id> --security-id <id>` | 是 | 受限（默认阻断） |
 | 联系方式交换 | `boss hr resume --exchange --friend-id <friend_id> [--type wechat]` | 是 | 受限（默认阻断） |
 | 消息回复 | `boss hr reply <friend_id> <message>` | 是 | 受限（默认阻断） |
 | 附件简历请求 | `boss hr request-resume <friend_id>` | 是 | 受限（默认阻断） |
@@ -112,4 +113,5 @@
 - 当前多平台状态：`boss platforms` 返回本地平台注册与能力状态，也可通过 `boss platforms --platform qiancheng` / `--platform 51job` 只查看单个平台或别名；`zhipin` 已覆盖求职者与招聘者实现，但敏感链路默认受低风险模式阻断；`zhilian` 已接通候选者侧链路，招聘者侧自动化通过 `agent` browser/CDP adapter V1 接入；`qiancheng` / 51job 仅为已注册占位适配器，真实工作流统一返回 `NOT_SUPPORTED`。
 - 当前登录状态：`zhipin` / `zhilian` 保留用户主动登录兼容链路；风控研究仅在显式 Research Mode 和声明的 adapter 中进行，且不得用于规避平台风控。
 - `crawl` 是用户显式触发的顺序 Research Mode 任务，使用独立 Chrome profile、跨进程速率预算、SQLite 断点和 `crawl stop` kill switch；MCP 保持 assisted-only，仅提供已有 run 的 `crawl_status/results/shortlist` 本地操作。默认 Hook 为 `none`；用户只有在拥有脚本授权时才能提供本地原始文件和 `SHA256SUMS` 以选择 Hook。候选人 `agent crawl` 默认只能消费已完成 run，只有设置 `operating_mode=research` 且传入 `--allow-crawl` 才可新建采集；风险码、安全页或预算耗尽会停止并返回恢复命令。
-- 以 `boss schema` 为准：当前暴露 38 个顶层命令；其中 `hr` 下还有 9 个一级招聘者子命令，`ai` / `resume` 为命令组入口。
+- 以 `boss schema` 为准：当前暴露 39 个顶层命令；其中 `hr` 下还有 10 个一级招聘者子命令，`ai` / `resume` 为命令组入口。
+- `hr download-resume` 一次只处理一个候选人，只在显式 `operating_mode=research` 下可用，且不进 MCP —— Agent 无法自动触发简历落盘，必须由用户显式执行命令。导出文件默认落在 `<data-dir>/recruiter/resumes/`，简历正文只写入文件，不进 stdout 信封与日志。

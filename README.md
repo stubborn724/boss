@@ -131,14 +131,14 @@ with BossClient(AuthManager(...)) as client:
 
 ## 📚 命令
 
-`boss schema` 暴露 38 个顶层命令 + 9 个一级招聘者子命令，按工作流分组：
+`boss schema` 暴露 39 个顶层命令 + 10 个一级招聘者子命令，按工作流分组：
 
 - **认证**：`login` · `logout` · `status` · `doctor`
 - **职位发现**：`search` · `detail` · `show` · `cities` · `history`
 - **本地整理**：`watch` · `preset` · `shortlist` · `stats` · `favorites`
 - **受限研究采集**：`crawl configure/run/start/status/results/resume/stop/shortlist`（仅显式 `operating_mode=research`；MCP 仅读取或本地导入已有 run）
 - **简历 / AI**：`resume` · `me` · `ai analyze-jd` · `ai polish` · `ai optimize` · `ai fit` · `ai suggest-keywords` · `ai resume-optimize` · `ai cover-letter` · `ai interview-prep` · `ai chat-coach` · `ai local`
-- **系统**：`schema` · `platforms` · `export` · `config` · `clean`
+- **系统**：`schema` · `platforms` · `export` · `config` · `clean` · `web`
 - **招聘者**：`hr jobs list/online/offline`
 - **受限动作（默认低风险模式阻断）**：`greet` · `batch-greet` · `apply` · `exchange` · `chat*` · `pipeline` · `digest`
 

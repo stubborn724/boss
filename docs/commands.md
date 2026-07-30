@@ -17,9 +17,10 @@ boss <命令> --help                      # 查看单个命令选项
 
 | 命令 | 说明 |
 |------|------|
-| `boss schema` | 输出完整工具能力描述 JSON（38 个顶层命令 + hr 分组展开，Agent 首先调用） |
+| `boss schema` | 输出完整工具能力描述 JSON（39 个顶层命令 + hr 分组展开，Agent 首先调用） |
 | `boss platforms` | 本地平台注册与能力状态（不触网；支持 `--platform` 单平台过滤与 `--capability` 反查，附 `capability_status_legend`） |
 | `boss login` | 用户主动登录（按平台走 Cookie / CDP / QR / 浏览器降级链路） |
+| `boss web` | 启动仅绑定 `127.0.0.1` 的本地招聘简历控制台；登录在 BOSS 官方页面完成，页面不展示凭据或简历正文，下载仍需显式 `research` 模式且不进 MCP |
 | `boss logout` | 退出登录 |
 | `boss status` | 检查登录态（默认仅本地；`--live` 才执行低频只读验证） |
 | `boss doctor` | 诊断环境、依赖、凭据完整性和网络；默认仅本地诊断，`--live-probe` 才执行低频只读探测；敏感操作或命中风控时提示回到官方页面手动完成 |
@@ -101,6 +102,7 @@ boss crawl stop <run_id>
 |------|------|
 | `boss hr applications` | 受限：默认低风险模式阻断，涉及候选人投递申请 |
 | `boss hr resume <geek_id> --selector <csel_...> --security-id <id>` | 受限：默认低风险模式阻断，涉及候选人在线简历 |
+| `boss hr download-resume <geek_id> --job-id <id> --security-id <id> [--output <file.md>\|--output-dir <dir>]` | 受限：默认低风险模式阻断。把单个候选人在线简历导出为本地 Markdown（默认 `<data-dir>/recruiter/resumes/`）；不进 MCP，只能由用户显式执行 |
 | `boss hr resume --exchange --friend-id <friend_id> [--type wechat]` | 受限：默认低风险模式阻断，涉及联系方式交换 |
 | `boss hr chat` | 受限：默认低风险模式阻断，涉及候选人沟通列表 |
 | `boss hr chatmsg <friend_id>` | 受限：默认低风险模式阻断，涉及候选人聊天记录 |

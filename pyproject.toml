@@ -36,6 +36,7 @@ dependencies = [
 	"rich>=13.0",
 	"pyyaml>=6.0",
 	"websockets>=12.0",
+	"aiohttp>=3.9",
 ]
 
 [project.urls]
@@ -228,6 +229,8 @@ module = [
 	"boss_agent_cli.commands.recruiter.request_resume",
 	"boss_agent_cli.commands.recruiter.resume",
 	"boss_agent_cli.commands.recruiter.resume_parser",
+	"boss_agent_cli.commands.recruiter.resume_export",
+	"boss_agent_cli.commands.recruiter.download_resume",
 	"boss_agent_cli",
 	"boss_agent_cli.compliance",
 	"boss_agent_cli.auth.health",
@@ -239,6 +242,7 @@ module = [
 	"boss_agent_cli.commands.register",
 	"boss_agent_cli.commands.contact_lookup",
 	"boss_agent_cli.commands.friend_list_pages",
+	"boss_agent_cli.commands.web",
 	"boss_agent_cli.commands._recruiter_platform",
 	"boss_agent_cli.commands.crawl",
 	"boss_agent_cli.crawler.exporter",
@@ -249,6 +253,10 @@ module = [
 	"boss_agent_cli.mcp_args",
 	"boss_agent_cli.mcp_server",
 	"boss_agent_cli.mcp_tools",
+	"boss_agent_cli.web",
+	"boss_agent_cli.web.app",
+	"boss_agent_cli.web.assets",
+	"boss_agent_cli.web.runtime",
 ]
 disallow_untyped_defs = true
 disallow_any_generics = true

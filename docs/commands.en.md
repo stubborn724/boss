@@ -12,7 +12,7 @@ boss schema --format anthropic-tools   # export Claude Tool Use definitions
 boss <cmd> --help                      # options for a single command
 ```
 
-`boss schema` currently exposes 38 top-level commands, plus 9 first-level recruiter
+`boss schema` currently exposes 39 top-level commands, plus 10 first-level recruiter
 subcommands under `hr`, grouped below by workflow stage.
 
 Operating mode: `boss config set operating_mode assisted|research`. The default is `assisted`; after switching, run `boss schema` again to inspect per-command mode, risk, and data classifications.
@@ -24,6 +24,7 @@ Operating mode: `boss config set operating_mode assisted|research`. The default 
 | `boss schema` | Full tool self-description JSON (agents call this first) |
 | `boss platforms` | Local platform registry and capability status (no network; `--platform` filter, `--capability` reverse lookup, includes `capability_status_legend`) |
 | `boss login` | User-triggered login (Cookie / CDP / QR / browser fallback per platform) |
+| `boss web` | Starts a `127.0.0.1`-only local recruiter resume console; login completes on the official BOSS page, the page never shows credentials or resume body, and downloading still requires explicit `research` mode and stays out of MCP |
 | `boss logout` | Log out |
 | `boss status` | Check login state (local-only by default; `--live` runs a low-frequency read-only probe) |
 | `boss doctor` | Diagnose environment, dependencies, credential integrity, and network; local-only by default, `--live-probe` opts into a read-only probe |
@@ -103,6 +104,7 @@ After every page, `<data-dir>/crawl/runs/<run_id>/jobs.json`, `jobs.csv`, and a 
 |---------|-------------|
 | `boss hr jobs list/offline/online` | Job listing and lifecycle management |
 | `boss hr applications` / `hr resume` / `hr chat` / `hr chatmsg` / `hr last-messages` / `hr candidates` / `hr reply` / `hr request-resume` | Restricted: blocked by default — candidate personal-data and messaging workflows belong on the official recruiter UI |
+| `boss hr download-resume <geek_id> --job-id <id> --security-id <id> [--output <file.md>\|--output-dir <dir>]` | Restricted: blocked by default. Exports one candidate's online resume to a local Markdown file (defaults to `<data-dir>/recruiter/resumes/`); absent from MCP, so only a user can trigger it |
 
 ## Resume & AI
 

@@ -101,6 +101,7 @@ The default low-risk `assisted` mode remains local, read-only first, and user-tr
 | Chat message history | `boss hr chatmsg <friend_id>` | Yes | Restricted (blocked by default) |
 | Recent-message summaries | `boss hr last-messages [--friend-id <id>]` | Yes | Restricted (blocked by default) |
 | Online resume view | `boss hr resume <geek_id> --selector <csel_...> --security-id <id>` | Yes | Restricted (blocked by default) |
+| Online resume download to file | `boss hr download-resume <geek_id> --job-id <id> --security-id <id>` | Yes | Restricted (blocked by default) |
 | Contact exchange | `boss hr resume --exchange --friend-id <friend_id> [--type wechat]` | Yes | Restricted (blocked by default) |
 | Reply to candidate | `boss hr reply <friend_id> <message>` | Yes | Restricted (blocked by default) |
 | Request attached resume | `boss hr request-resume <friend_id>` | Yes | Restricted (blocked by default) |
@@ -112,4 +113,5 @@ Notes:
 - Current platform coverage: `zhipin` has both candidate and recruiter implementations, but sensitive workflows are blocked by default; `zhilian` supports candidate-side workflows and recruiter automation through the `agent` browser/CDP adapter V1; `qiancheng` / 51job is a registered placeholder adapter whose real workflows return `NOT_SUPPORTED`.
 - Current auth posture: `zhipin` and `zhilian` keep user-triggered login compatibility; risk-control research belongs only in explicit Research Mode adapters and must not bypass platform risk controls.
 - `crawl` is a user-triggered sequential Research Mode task using an isolated Chrome profile, cross-process rate budget, SQLite checkpoints, and the `crawl stop` kill switch; MCP remains assisted-only and exposes only local `crawl_status/results/shortlist` operations for an existing run. The default Hook is `none`; users may select a Hook only when they have authorization to provide the original local files and `SHA256SUMS`. Candidate `agent crawl` consumes only completed runs by default; a new crawl requires `operating_mode=research` and `--allow-crawl`. Risk codes, a security page, or an exhausted budget stop it and return a resume command.
-- Use `boss schema` as the source of truth: it currently exposes 38 top-level commands, with 9 first-level recruiter subcommands under `hr`, while `ai` and `resume` remain command-group entries.
+- Use `boss schema` as the source of truth: it currently exposes 39 top-level commands, with 10 first-level recruiter subcommands under `hr`, while `ai` and `resume` remain command-group entries.
+- `hr download-resume` handles one candidate per invocation, requires explicit `operating_mode=research`, and is deliberately absent from MCP — an agent cannot trigger a resume write to disk; the user must run the command. Exports default to `<data-dir>/recruiter/resumes/`, and the resume body goes only into the file, never into the stdout envelope or logs.

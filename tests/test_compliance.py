@@ -47,6 +47,7 @@ def test_default_low_risk_mode_blocks_recruiter_candidate_screening():
 	for args, command in [
 		(("hr", "candidates", "python"), "recruiter-candidates"),
 		(("hr", "resume", "geek_001", "--job-id", "job_001", "--security-id", "sec_001"), "recruiter-resume"),
+		(("hr", "download-resume", "geek_001", "--job-id", "job_001", "--security-id", "sec_001"), "recruiter-download-resume"),
 		(("hr", "request-resume", "12345"), "recruiter-request-resume"),
 	]:
 		code, parsed = _invoke(*args)

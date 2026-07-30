@@ -126,14 +126,14 @@ with BossClient(AuthManager(...)) as client:
 
 ## 📚 Commands
 
-`boss schema` exposes 38 top-level commands + 9 first-level recruiter subcommands, grouped by workflow:
+`boss schema` exposes 39 top-level commands + 10 first-level recruiter subcommands, grouped by workflow:
 
 - **Auth**: `login` · `logout` · `status` · `doctor`
 - **Discover**: `search` · `detail` · `show` · `cities` · `history`
 - **Organize**: `watch` · `preset` · `shortlist` · `stats` · `favorites`
 - **Restricted research crawl**: `crawl configure/run/start/status/results/resume/stop/shortlist` (explicit `operating_mode=research` only; MCP only reads or locally imports an existing run)
 - **Resume / AI**: `resume` · `me` · `ai analyze-jd` · `ai polish` · `ai optimize` · `ai fit` · `ai suggest-keywords` · `ai resume-optimize` · `ai cover-letter` · `ai interview-prep` · `ai chat-coach` · `ai local`
-- **Utility**: `schema` · `platforms` · `export` · `config` · `clean`
+- **Utility**: `schema` · `platforms` · `export` · `config` · `clean` · `web`
 - **Recruiter**: `hr jobs list/online/offline`
 - **Restricted (blocked by default in low-risk mode)**: `greet` · `batch-greet` · `apply` · `exchange` · `chat*` · `pipeline` · `digest`
 

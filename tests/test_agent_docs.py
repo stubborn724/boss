@@ -94,8 +94,8 @@ def test_capability_matrix_exists_and_covers_core_capabilities():
 	assert "`boss digest`" in content
 	assert "`boss config`" in content
 	assert "`boss clean`" in content
-	assert "38 个顶层命令" in content
-	assert "9 个一级招聘者子命令" in content
+	assert "39 个顶层命令" in content
+	assert "10 个一级招聘者子命令" in content
 	assert "`qiancheng` / 51job" in content
 	assert "`NOT_SUPPORTED`" in content
 
@@ -194,8 +194,8 @@ def test_english_agent_docs_exist_and_are_linked_from_english_entrypoints():
 	assert "| Capability | CLI command | Login required | Transport |" in matrix
 	assert "`boss schema`" in matrix
 	assert "`boss hr candidates`" in matrix
-	assert "38 top-level commands" in matrix
-	assert "9 first-level recruiter subcommands" in matrix
+	assert "39 top-level commands" in matrix
+	assert "10 first-level recruiter subcommands" in matrix
 
 	mcp_readme = _read("mcp-server/README.en.md")
 	assert "[Agent Quickstart](../docs/agent-quickstart.en.md)" in mcp_readme
@@ -321,6 +321,9 @@ _CAPABILITY_COUNT_PATTERNS: tuple[tuple[str, str], ...] = (
 	(r"(\d+)\s+(?:default\s+low-risk\s+)?MCP\s+tools", "tools"),
 	(r"(\d+)\s+default\s+low-risk\s+tools", "tools"),
 	(r"MCP\s+server\s+with\s+(\d+)\s+tools", "tools"),
+	# 招聘者子命令数此前只有硬编码断言，新增一个 hr 子命令时文档会静默变旧。
+	(r"(\d+)\s*个一级招聘者子命令", "recruiter_subcommands"),
+	(r"(\d+)\s+first-level\s+recruiter\s+subcommands", "recruiter_subcommands"),
 )
 
 # CHANGELOG 按定义记录历史事实（如「工具计数 31 → 32」），不该跟随当前值变化。
@@ -359,10 +362,12 @@ def test_docs_capability_counts_match_runtime_source():
 	并从 `SCHEMA_DATA` / `TOOLS` 动态取值，避免守卫本身成为下一个硬编码漂移点。
 	"""
 	from boss_agent_cli.commands.schema import SCHEMA_DATA
+	from boss_agent_cli.commands.register import hr_group
 
 	expected = {
 		"commands": len(SCHEMA_DATA["commands"]),
 		"tools": len(_load_mcp_tools()),
+		"recruiter_subcommands": len(hr_group.commands),
 	}
 	mismatches: list[str] = []
 

@@ -39,10 +39,12 @@ from boss_agent_cli.commands import (
 	stats,
 	status,
 	watch,
+	web,
 )
 from boss_agent_cli.commands.recruiter import applications as recruiter_applications
 from boss_agent_cli.commands.recruiter import candidates as recruiter_candidates
 from boss_agent_cli.commands.recruiter import chat as recruiter_chat
+from boss_agent_cli.commands.recruiter import download_resume as recruiter_download_resume
 from boss_agent_cli.commands.recruiter import jobs as recruiter_jobs
 from boss_agent_cli.commands.recruiter import reply as recruiter_reply
 from boss_agent_cli.commands.recruiter import request_resume as recruiter_request_resume
@@ -76,6 +78,7 @@ def register_candidate_commands(cli: click.Group) -> None:
 	cli.add_command(show.show_cmd, "show")
 	cli.add_command(history.history_cmd, "history")
 	cli.add_command(watch.watch_group, "watch")
+	cli.add_command(web.web_cmd, "web")
 	cli.add_command(pipeline.pipeline_cmd, "pipeline")
 	cli.add_command(pipeline.follow_up_cmd, "follow-up")
 	cli.add_command(apply.apply_cmd, "apply")
@@ -127,3 +130,4 @@ def register_recruiter_commands(cli: click.Group) -> None:
 	hr_group.add_command(recruiter_candidates.candidates_cmd, "candidates")
 	hr_group.add_command(recruiter_reply.reply_cmd, "reply")
 	hr_group.add_command(recruiter_request_resume.request_resume_cmd, "request-resume")
+	hr_group.add_command(recruiter_download_resume.download_resume_cmd, "download-resume")
