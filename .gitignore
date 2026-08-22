@@ -45,3 +45,11 @@ docs/blog/linuxdo-promo.md
 
 # baoyu-design working dir (canonical promo source lives in demo/promo-showcase/)
 designs/
+
+# 本地运行状态、候选人数据和调试产物，不进入远程仓库
+.idea/
+.tmp/
+data/
+recruiter/
+*.log
+_page.js

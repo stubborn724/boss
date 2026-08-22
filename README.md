@@ -131,7 +131,7 @@ with BossClient(AuthManager(...)) as client:
 
 ## 📚 命令
 
-`boss schema` 暴露 39 个顶层命令 + 10 个一级招聘者子命令，按工作流分组：
+`boss schema` 暴露 39 个顶层命令 + 15 个一级招聘者子命令，按工作流分组：
 
 - **认证**：`login` · `logout` · `status` · `doctor`
 - **职位发现**：`search` · `detail` · `show` · `cities` · `history`

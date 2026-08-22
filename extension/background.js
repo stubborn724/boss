@@ -5,6 +5,8 @@
  * dispatches them to Chrome APIs (debugger/tabs/cookies), returns results.
  */
 
+import { selectBossTab } from './tab_selection.js';
+
 const DAEMON_PORT = 19826;
 const DAEMON_WS_URL = `ws://127.0.0.1:${DAEMON_PORT}/ext`;
 const DAEMON_PING_URL = `http://127.0.0.1:${DAEMON_PORT}/ping`;
@@ -122,10 +124,15 @@ async function resolveTabId(tabId, workspace) {
 		} catch {}
 	}
 
-	// workspace="boss" 时，优先找已有的 zhipin tab（用户正常浏览的页面）
+	// workspace="boss" 时，优先复用用户当前激活的 BOSS 标签。多个 BOSS
+	// 标签共存时，绝不能依赖 chrome.tabs.query 的返回顺序，否则会误附着到
+	// 推荐页并把沟通列表误判为空。
 	if (workspace === 'boss') {
 		const zhipinTabs = await chrome.tabs.query({ url: '*://*.zhipin.com/*' });
-		if (zhipinTabs.length > 0) return zhipinTabs[0].id;
+		const activeTabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+		const activeBossTab = activeTabs.find((tab) => zhipinTabs.some((bossTab) => bossTab.id === tab.id));
+		const selectedBossTab = selectBossTab(zhipinTabs, activeBossTab?.id ?? null);
+		if (selectedBossTab?.id) return selectedBossTab.id;
 	}
 
 	const windowId = await getAutomationWindow();
@@ -197,9 +204,10 @@ async function handleCommand(cmd) {
 	resetIdleTimer();
 	try {
 		switch (cmd.action) {
-			case 'exec': return await handleExec(cmd);
-			case 'navigate': return await handleNavigate(cmd);
-			case 'cookies': return await handleCookies(cmd);
+		case 'exec': return await handleExec(cmd);
+		case 'navigate': return await handleNavigate(cmd);
+		case 'downloads-list': return await handleDownloadsList(cmd);
+		case 'cookies': return await handleCookies(cmd);
 			case 'close-window': return await handleCloseWindow(cmd);
 			default: return { id: cmd.id, ok: false, error: `Unknown action: ${cmd.action}` };
 		}
@@ -233,6 +241,24 @@ async function handleNavigate(cmd) {
 
 	const tab = await chrome.tabs.get(tabId);
 	return { id: cmd.id, ok: true, data: { title: tab.title, url: tab.url, tabId } };
+}
+
+async function handleDownloadsList(cmd) {
+	// 只返回确认附件落盘所需的下载元数据。文件内容仍由浏览器真实下载并在
+	// Python 端移动到桌面目录；Bridge 不读取二进制，也不请求附件 URL。
+	const since = Number.isFinite(cmd.sinceMs) ? cmd.sinceMs : 0;
+	const downloads = await chrome.downloads.search({ limit: 100, orderBy: ['-startTime'] });
+	const data = downloads
+		.filter((item) => item.startTime && new Date(item.startTime).getTime() >= since)
+		.map((item) => ({
+			id: item.id,
+			state: item.state,
+			filename: item.filename,
+			startTime: item.startTime,
+			endTime: item.endTime || '',
+			fileSize: item.fileSize || 0,
+		}));
+	return { id: cmd.id, ok: true, data };
 }
 
 async function handleCookies(cmd) {

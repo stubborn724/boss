@@ -12,7 +12,7 @@ boss schema --format anthropic-tools   # export Claude Tool Use definitions
 boss <cmd> --help                      # options for a single command
 ```
 
-`boss schema` currently exposes 39 top-level commands, plus 10 first-level recruiter
+`boss schema` currently exposes 39 top-level commands, plus 15 first-level recruiter
 subcommands under `hr`, grouped below by workflow stage.
 
 Operating mode: `boss config set operating_mode assisted|research`. The default is `assisted`; after switching, run `boss schema` again to inspect per-command mode, risk, and data classifications.

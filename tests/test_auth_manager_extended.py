@@ -311,6 +311,15 @@ def test_check_status_returns_none_when_no_token(mock_store_cls, tmp_path):
 
 
 @patch("boss_agent_cli.auth.manager.TokenStore")
+def test_has_saved_login_requires_the_platform_primary_cookie(mock_store_cls, tmp_path):
+	"""工作台只能将含平台主 Cookie 的本地会话标记为已登录。"""
+	store = _make_store(token={"cookies": {"wt2": "saved-session"}})
+	mock_store_cls.return_value = store
+
+	assert AuthManager(tmp_path).has_saved_login() is True
+
+
+@patch("boss_agent_cli.auth.manager.TokenStore")
 def test_logout_clears_store_and_cached_token(mock_store_cls, tmp_path):
 	token = {"cookies": {"wt2": "x"}, "stoken": "y"}
 	store = _make_store(token=token)

@@ -1,5 +1,6 @@
 import ast
 import json
+import tempfile
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -11,7 +12,10 @@ from boss_agent_cli.main import cli
 
 def _invoke(*args: str):
 	runner = CliRunner()
-	result = runner.invoke(cli, ["--json", *args])
+	# 合规默认值测试必须使用隔离数据目录，不能被开发机已有的
+	# ~/.boss-agent/config.json（例如 research 模式）污染。
+	with tempfile.TemporaryDirectory() as data_dir:
+		result = runner.invoke(cli, ["--json", "--data-dir", data_dir, *args])
 	return result.exit_code, json.loads(result.output)
 
 

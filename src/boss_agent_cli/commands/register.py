@@ -42,13 +42,17 @@ from boss_agent_cli.commands import (
 	web,
 )
 from boss_agent_cli.commands.recruiter import applications as recruiter_applications
+from boss_agent_cli.commands.recruiter import ai_dialogue as recruiter_ai_dialogue
+from boss_agent_cli.commands.recruiter import batch_download_resume as recruiter_batch_download_resume
 from boss_agent_cli.commands.recruiter import candidates as recruiter_candidates
 from boss_agent_cli.commands.recruiter import chat as recruiter_chat
 from boss_agent_cli.commands.recruiter import download_resume as recruiter_download_resume
+from boss_agent_cli.commands.recruiter import job_standard as recruiter_job_standard
 from boss_agent_cli.commands.recruiter import jobs as recruiter_jobs
 from boss_agent_cli.commands.recruiter import reply as recruiter_reply
 from boss_agent_cli.commands.recruiter import request_resume as recruiter_request_resume
 from boss_agent_cli.commands.recruiter import resume as recruiter_resume
+from boss_agent_cli.commands.recruiter import screen_resumes as recruiter_screen_resumes
 from boss_agent_cli.display import handle_error_output
 from boss_agent_cli.platforms import list_recruiter_platforms
 
@@ -131,3 +135,8 @@ def register_recruiter_commands(cli: click.Group) -> None:
 	hr_group.add_command(recruiter_reply.reply_cmd, "reply")
 	hr_group.add_command(recruiter_request_resume.request_resume_cmd, "request-resume")
 	hr_group.add_command(recruiter_download_resume.download_resume_cmd, "download-resume")
+	hr_group.add_command(recruiter_screen_resumes.screen_cmd, "screen")
+	hr_group.add_command(recruiter_batch_download_resume.batch_download_resume_cmd, "batch-download-resume")
+	hr_group.add_command(recruiter_job_standard.job_standard_cmd, "job-standard")
+	hr_group.add_command(recruiter_job_standard.job_standards_cmd, "job-standards")
+	hr_group.add_command(recruiter_ai_dialogue.ai_dialogue_group, "ai-dialogue")

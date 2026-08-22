@@ -338,3 +338,19 @@ def test_client_fetch_json_post(mock_post):
 	call_args = mock_post.call_args[1]["json"]
 	assert "POST" in call_args["code"]
 	assert "key" in call_args["code"]
+
+
+@patch("boss_agent_cli.bridge.client.httpx.post")
+def test_client_list_downloads_returns_only_metadata(mock_post):
+	"""附件 RPA 只需读取 Chrome 下载完成元数据，不接触内容或 Cookie。"""
+	mock_post.return_value = MagicMock(json=lambda: {
+		"id": "x",
+		"ok": True,
+		"data": [{"id": 7, "state": "complete", "filename": r"C:\\Downloads\\resume.pdf"}],
+	})
+	client = BridgeClient()
+
+	downloads = client.list_downloads()
+
+	assert downloads == [{"id": 7, "state": "complete", "filename": r"C:\\Downloads\\resume.pdf"}]
+	assert mock_post.call_args.kwargs["json"]["action"] == "downloads-list"

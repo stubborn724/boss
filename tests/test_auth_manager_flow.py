@@ -128,26 +128,69 @@ def test_login_uses_qr_httpx_when_cdp_unavailable(
 
 @patch("boss_agent_cli.auth.manager.TokenStore")
 @patch("boss_agent_cli.auth.manager.login_via_browser")
+@patch("boss_agent_cli.auth.manager.login_via_cdp")
 @patch("boss_agent_cli.auth.manager.extract_cookies")
 def test_login_in_browser_opens_official_login_without_cookie_or_qr_fallback(
 	mock_extract,
+	mock_login_via_cdp,
 	mock_login_via_browser,
 	mock_store_cls,
 	tmp_path,
 ):
-	"""Web 控制台登录必须显式打开官方页面，不能退化为不可见的二维码轮询。"""
+	"""Web 控制台必须通过专用 Chrome 的 CDP 打开官方登录页。"""
 	store = _make_store()
 	mock_store_cls.return_value = store
-	mock_login_via_browser.return_value = {"cookies": {"wt2": "browser-cookie"}, "stoken": "browser-token"}
+	mock_login_via_cdp.return_value = {"cookies": {"wt2": "browser-cookie"}, "stoken": "browser-token"}
+	persistent_chrome = MagicMock()
+	persistent_chrome.ensure_running.return_value = "http://127.0.0.1:9222"
 
-	manager = AuthManager(tmp_path)
+	manager = AuthManager(tmp_path, persistent_chrome=persistent_chrome)
 
 	result = manager.login_in_browser(timeout=90)
 
 	mock_extract.assert_not_called()
-	mock_login_via_browser.assert_called_once_with(timeout=90, platform="zhipin")
+	mock_login_via_cdp.assert_called_once_with(
+		cdp_url="http://127.0.0.1:9222",
+		timeout=90,
+		platform="zhipin",
+		keep_page_open=True,
+		require_login_confirmation=True,
+	)
+	mock_login_via_browser.assert_not_called()
 	store.save.assert_called_once_with({"cookies": {"wt2": "browser-cookie"}, "stoken": "browser-token"})
-	assert result["_method"] == "浏览器扫码登录"
+	assert result["_method"] == "专用 Chrome 登录"
+
+
+@patch("boss_agent_cli.auth.manager.TokenStore")
+def test_open_login_page_opens_official_page_without_waiting_for_login_confirmation(mock_store_cls, tmp_path) -> None:
+	"""打开登录页只确保官方页面出现，不能调用会等待扫码结果的确认流程。"""
+	store = _make_store()
+	mock_store_cls.return_value = store
+	persistent_chrome = MagicMock()
+	persistent_chrome.ensure_running.return_value = "http://127.0.0.1:9222"
+	manager = AuthManager(tmp_path, persistent_chrome=persistent_chrome)
+
+	assert manager.open_login_page() == "http://127.0.0.1:9222"
+	persistent_chrome.ensure_running.assert_called_once_with(open_login_page=True)
+
+
+@patch("boss_agent_cli.auth.manager.TokenStore")
+def test_open_login_page_recovers_from_stale_cdp_address(mock_store_cls, tmp_path, monkeypatch) -> None:
+	"""旧 CDP 地址不可用时，登录入口必须回退到项目专用 Chrome。"""
+	store = _make_store()
+	mock_store_cls.return_value = store
+	persistent_chrome = MagicMock()
+	persistent_chrome.ensure_running.return_value = "http://127.0.0.1:9222"
+	manager = AuthManager(tmp_path, persistent_chrome=persistent_chrome)
+
+	class _FailedResponse:
+		def raise_for_status(self) -> None:
+			raise RuntimeError("stale cdp")
+
+	monkeypatch.setattr("httpx.put", lambda *_args, **_kwargs: _FailedResponse())
+
+	assert manager.open_login_page(cdp_url="http://127.0.0.1:9222") == "http://127.0.0.1:9222"
+	persistent_chrome.ensure_running.assert_called_once_with(open_login_page=True)
 
 
 @patch("boss_agent_cli.auth.manager.TokenStore")

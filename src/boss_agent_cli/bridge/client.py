@@ -262,6 +262,20 @@ class BridgeClient:
 			raise RuntimeError(f"Bridge navigate 失败: {result.error}")
 		return result.data if isinstance(result.data, dict) else {}
 
+	def list_downloads(self, *, since_ms: int = 0) -> list[dict[str, Any]]:
+		"""读取 Chrome 已知下载任务的最小元数据。
+
+		附件流程只需要确认由页面点击产生的新下载是否完成，再由本地 RPA 服务将
+		对应文件移至用户指定目录。这里不读取下载内容、不发起下载，也不触碰
+		Cookie，避免把 DOM RPA 重新演变成接口抓取。
+		"""
+		result = self.send_command("downloads-list", since_ms=max(0, int(since_ms)))
+		if not result.ok:
+			raise RuntimeError(f"Bridge downloads-list 失败: {result.error}")
+		if not isinstance(result.data, list):
+			return []
+		return [dict(item) for item in result.data if isinstance(item, dict)]
+
 	def get_cookies(self, domain: str) -> list[dict[str, Any]]:
 		"""获取指定域名的 Cookie。"""
 		result = self.send_command("cookies", domain=domain)

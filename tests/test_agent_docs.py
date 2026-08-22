@@ -95,7 +95,7 @@ def test_capability_matrix_exists_and_covers_core_capabilities():
 	assert "`boss config`" in content
 	assert "`boss clean`" in content
 	assert "39 个顶层命令" in content
-	assert "10 个一级招聘者子命令" in content
+	assert "15 个一级招聘者子命令" in content
 	assert "`qiancheng` / 51job" in content
 	assert "`NOT_SUPPORTED`" in content
 
@@ -195,7 +195,7 @@ def test_english_agent_docs_exist_and_are_linked_from_english_entrypoints():
 	assert "`boss schema`" in matrix
 	assert "`boss hr candidates`" in matrix
 	assert "39 top-level commands" in matrix
-	assert "10 first-level recruiter subcommands" in matrix
+	assert "15 first-level recruiter subcommands" in matrix
 
 	mcp_readme = _read("mcp-server/README.en.md")
 	assert "[Agent Quickstart](../docs/agent-quickstart.en.md)" in mcp_readme
@@ -361,8 +361,11 @@ def test_docs_capability_counts_match_runtime_source():
 	只有 README 与 capability-matrix 被断言覆盖。这里改为扫描全部对外 Markdown，
 	并从 `SCHEMA_DATA` / `TOOLS` 动态取值，避免守卫本身成为下一个硬编码漂移点。
 	"""
-	from boss_agent_cli.commands.schema import SCHEMA_DATA
+	# Click 子命令由 main 模块完成注册；守卫单独运行时也要初始化同一真源。
+	from boss_agent_cli.main import cli as _registered_cli
 	from boss_agent_cli.commands.register import hr_group
+	from boss_agent_cli.commands.schema import SCHEMA_DATA
+	assert _registered_cli is not None
 
 	expected = {
 		"commands": len(SCHEMA_DATA["commands"]),

@@ -100,6 +100,47 @@ def test_login_via_cdp_stops_playwright_when_user_agent_extraction_fails(mock_sl
 
 @patch("boss_agent_cli.auth.browser.probe_cdp", return_value="ws://localhost/devtools/browser")
 @patch("boss_agent_cli.auth.browser.time.sleep", return_value=None)
+def test_zhipin_login_via_cdp_reuses_open_official_page(mock_sleep, mock_probe_cdp):
+	"""已打开的 BOSS 官方页必须被复用，不能额外创建 about:blank 标签。"""
+	mock_page = MagicMock()
+	mock_page.url = LOGIN_PAGE_URL
+	mock_context = MagicMock()
+	mock_context.pages = [mock_page]
+	mock_context.cookies.return_value = [{"name": "wt2", "value": "token", "domain": ".zhipin.com"}]
+	mock_launcher, mock_playwright, _mock_new_page = _mock_cdp_playwright(mock_context)
+	mock_page.evaluate.return_value = "UA"
+
+	with patch("boss_agent_cli.auth.browser.sync_playwright", return_value=mock_launcher):
+		result = login_via_cdp(timeout=1, platform="zhipin")
+
+	assert result["cookies"]["wt2"] == "token"
+	mock_context.new_page.assert_not_called()
+	mock_page.close.assert_not_called()
+	mock_playwright.stop.assert_called_once()
+
+
+@patch("boss_agent_cli.auth.browser.probe_cdp", return_value="ws://localhost/devtools/browser")
+@patch("boss_agent_cli.auth.browser.time.sleep", return_value=None)
+def test_zhipin_login_via_cdp_accepts_recruiter_page_after_confirmation(mock_sleep, mock_probe_cdp):
+	"""官方页跳转到招聘沟通页即证明登录完成，不能因 Cookie 读取延迟误判失败。"""
+	mock_page = MagicMock()
+	mock_page.url = "https://www.zhipin.com/web/chat/recommend"
+	mock_page.evaluate.return_value = "UA"
+	mock_context = MagicMock()
+	mock_context.pages = [mock_page]
+	mock_context.cookies.return_value = []
+	mock_launcher, mock_playwright, _mock_new_page = _mock_cdp_playwright(mock_context)
+
+	with patch("boss_agent_cli.auth.browser.sync_playwright", return_value=mock_launcher):
+		result = login_via_cdp(timeout=1, platform="zhipin", require_login_confirmation=True)
+
+	assert result["cookies"] == {}
+	mock_context.new_page.assert_not_called()
+	mock_playwright.stop.assert_called_once()
+
+
+@patch("boss_agent_cli.auth.browser.probe_cdp", return_value="ws://localhost/devtools/browser")
+@patch("boss_agent_cli.auth.browser.time.sleep", return_value=None)
 def test_zhilian_login_via_cdp_reuses_recruiter_page(mock_sleep, mock_probe_cdp):
 	mock_page = MagicMock()
 	mock_page.url = "https://rd6.zhaopin.com/app/im?sessionId=abc"
@@ -128,6 +169,10 @@ def test_zhilian_login_via_cdp_reuses_recruiter_page(mock_sleep, mock_probe_cdp)
 @patch("boss_agent_cli.auth.browser.time.sleep", return_value=None)
 def test_login_via_browser_tolerates_networkidle_timeout(mock_sleep, mock_extract_stoken):
 	mock_page = MagicMock()
+	mock_page.is_closed.return_value = False
+	mock_page.on.side_effect = lambda _event, handler: handler(
+		type("Response", (), {"url": "https://www.zhipin.com/wapi/zppassport/qrcode/loginConfirm"})()
+	)
 	mock_page.wait_for_load_state.side_effect = Exception("Timeout 30000ms exceeded")
 	mock_page.evaluate.return_value = "UA"
 

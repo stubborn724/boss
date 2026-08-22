@@ -52,7 +52,7 @@ boss shortlist add <security_id> <job_id>
 }
 ```
 
-当前能力面以 `boss schema` 为准：39 个顶层命令，`hr` 下 10 个一级招聘者子命令，MCP 默认暴露 50 个低风险工具。
+当前能力面以 `boss schema` 为准：39 个顶层命令，`hr` 下 15 个一级招聘者子命令，MCP 默认暴露 50 个低风险工具。
 
 ### 3. 三个设计决策
 

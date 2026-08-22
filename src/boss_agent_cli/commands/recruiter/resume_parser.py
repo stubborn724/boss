@@ -14,39 +14,62 @@ def _safe_str(val: Any) -> str:
 	return str(val)
 
 
+def _as_mapping(value: Any) -> dict[str, Any]:
+	"""把平台可选对象收敛为字典，避免字段漂移或 null 让导出中断。"""
+	return value if isinstance(value, dict) else {}
+
+
+def _first_value(source: dict[str, Any], *keys: str) -> Any:
+	"""按字段别名顺序取值，统一处理 BOSS 不同页面版本的命名差异。"""
+	for key in keys:
+		value = source.get(key)
+		if value not in (None, ""):
+			return value
+	return ""
+
+
+def _record_list(source: dict[str, Any], *keys: str) -> list[dict[str, Any]]:
+	"""只保留对象列表项，忽略平台偶发返回的 null 或字符串占位项。"""
+	for key in keys:
+		value = source.get(key)
+		if isinstance(value, list):
+			return [item for item in value if isinstance(item, dict)]
+	return []
+
+
 def _parse_base(info: dict[str, Any]) -> dict[str, Any]:
-	base = info.get("geekBaseInfo", {})
+	base = _as_mapping(info.get("geekBaseInfo") or info.get("baseInfo"))
 	return {
-		"name": base.get("name", ""),
+		"name": _first_value(base, "name", "userName"),
 		"gender": "男" if base.get("gender") == 1 else "女",
-		"age": base.get("ageDesc", ""),
-		"degree": base.get("degreeCategory", ""),
-		"work_years": base.get("workYearDesc", ""),
-		"active_status": base.get("activeTimeDesc", ""),
+		"age": _first_value(base, "ageDesc", "age"),
+		"degree": _first_value(base, "degreeCategory", "degreeName"),
+		"work_years": _first_value(base, "workYearDesc", "experience"),
+		"active_status": _first_value(base, "activeTimeDesc", "activeStatus"),
 		"avatar": base.get("large", ""),
 	}
 
 
 def _parse_expect(info: dict[str, Any]) -> dict[str, Any]:
-	ex = info.get("showExpectPosition") or {}
+	ex = _as_mapping(info.get("showExpectPosition") or info.get("expectation"))
 	return {
-		"position": ex.get("positionName", ""),
-		"salary": ex.get("salaryDesc", ""),
-		"city": ex.get("locationName", ""),
+		"position": _first_value(ex, "positionName", "position"),
+		"salary": _first_value(ex, "salaryDesc", "expectedSalary"),
+		"city": _first_value(ex, "locationName", "city"),
 	}
 
 
 def _parse_works(info: dict[str, Any]) -> list[dict[str, Any]]:
 	result = []
-	for w in info.get("geekWorkExpList", []):
+	for w in _record_list(info, "geekWorkExpList", "workExperienceList"):
 		result.append({
-			"company": w.get("company", ""),
-			"position": w.get("positionName", ""),
+			"company": _first_value(w, "company", "companyName"),
+			"position": _first_value(w, "positionName", "position"),
 			"department": w.get("department", ""),
-			"start": w.get("startYearMonStr", ""),
-			"end": w.get("endYearMonStr", ""),
+			"start": _first_value(w, "startYearMonStr", "start"),
+			"end": _first_value(w, "endYearMonStr", "end"),
 			"duration": w.get("workYearDesc", ""),
-			"responsibility": w.get("responsibility", ""),
+			"responsibility": _first_value(w, "responsibility", "description"),
 			"performance": w.get("workPerformance", ""),
 			"keywords": w.get("workEmphasis", "").split("#&#") if w.get("workEmphasis") else [],
 		})
@@ -55,14 +78,14 @@ def _parse_works(info: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _parse_projects(info: dict[str, Any]) -> list[dict[str, Any]]:
 	result = []
-	for p in info.get("geekProjExpList", []):
+	for p in _record_list(info, "geekProjExpList", "projectList"):
 		result.append({
-			"name": p.get("name", ""),
-			"role": p.get("roleName", ""),
+			"name": _first_value(p, "name", "projectName"),
+			"role": _first_value(p, "roleName", "role"),
 			"start": p.get("startDateDesc", ""),
 			"end": p.get("endDateDesc", ""),
 			"duration": p.get("workYearDesc", ""),
-			"description": p.get("projectDescription", ""),
+			"description": _first_value(p, "projectDescription", "description"),
 			"achievement": p.get("performance", ""),
 		})
 	return result
@@ -70,11 +93,11 @@ def _parse_projects(info: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _parse_education(info: dict[str, Any]) -> list[dict[str, Any]]:
 	result = []
-	for e in info.get("geekEduExpList", []):
+	for e in _record_list(info, "geekEduExpList", "educationList"):
 		result.append({
-			"school": e.get("school", ""),
-			"major": e.get("major", ""),
-			"degree": e.get("degreeDesc", ""),
+			"school": _first_value(e, "school", "schoolName"),
+			"major": _first_value(e, "major", "majorName"),
+			"degree": _first_value(e, "degreeDesc", "degreeName"),
 			"start": e.get("startYearMonStr", ""),
 			"end": e.get("endYearMonStr", ""),
 		})
@@ -82,9 +105,31 @@ def _parse_education(info: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _parse_competitive(info: dict[str, Any]) -> list[str]:
-	jc = info.get("jobCompetitive") or {}
-	tips = jc.get("tips") or []
-	return [t.get("content", "") for t in tips]
+	jc = _as_mapping(info.get("jobCompetitive"))
+	return [str(t.get("content") or "") for t in _record_list(jc, "tips")]
+
+
+def _detail_info(payload: dict[str, Any]) -> dict[str, Any]:
+	"""兼容在线简历详情的两套包络，调用方只面对一个稳定信息对象。"""
+	return _as_mapping(payload.get("geekDetailInfo") or payload.get("geekInfo"))
+
+
+def _certifications(info: dict[str, Any]) -> list[str]:
+	"""兼容对象或文本证书，并丢弃空值和未知列表项。"""
+	values = info.get("geekCertificationList")
+	if not isinstance(values, list):
+		values = info.get("certifications")
+	if not isinstance(values, list):
+		return []
+	result: list[str] = []
+	for value in values:
+		if isinstance(value, str) and value.strip():
+			result.append(value.strip())
+		elif isinstance(value, dict):
+			name = _first_value(value, "certName", "name")
+			if name:
+				result.append(_safe_str(name))
+	return result
 
 
 def parse_resume(raw: dict[str, Any]) -> dict[str, Any]:
@@ -105,9 +150,9 @@ def parse_resume(raw: dict[str, Any]) -> dict[str, Any]:
 	payload = raw.get("zpData") if "zpData" in raw else raw.get("data", raw)
 	if not isinstance(payload, dict):
 		payload = {}
-	info = payload.get("geekDetailInfo", {})
+	info = _detail_info(payload)
 
-	certs = [_safe_str(c.get("certName")) for c in info.get("geekCertificationList", []) if c.get("certName")]
+	certs = _certifications(info)
 
 	return {
 		"basic": _parse_base(info),

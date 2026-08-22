@@ -34,6 +34,19 @@ class AutomationConfig:
 	auto_execute_threshold: float = 0.82
 	max_actions_per_run: int = 50
 	max_consecutive_errors: int = 3
+	# 以下字段是持久化节奏保护；默认值兼容旧版行为（不额外等待、全天可运行），
+	# 用户可以在配置文件中显式收紧额度和工作时段。
+	daily_action_quota: int = 50
+	cooldown_seconds: int = 0
+	schedule_enabled: bool = False
+	work_start_hour: int = 0
+	work_end_hour: int = 24
+	lunch_start_hour: int = 0
+	lunch_end_hour: int = 0
+	lunch_quota_factor: float = 1.0
+	weekend_quota_factor: float = 1.0
+	off_hours_quota_factor: float = 1.0
+	random_start_jitter_seconds: int = 0
 	tabs: tuple[str, ...] = ("新招呼", "未读")
 	max_per_tab: int = 20
 	questionnaire_message: str = "您好，想确认下近期是否看机会？"
@@ -71,6 +84,19 @@ def automation_config_from_dict(raw: dict[str, Any] | None) -> AutomationConfig:
 		auto_execute_threshold=float(data.get("auto_execute_threshold", _DEFAULT.auto_execute_threshold)),
 		max_actions_per_run=int(data.get("max_actions_per_run", _DEFAULT.max_actions_per_run)),
 		max_consecutive_errors=int(data.get("max_consecutive_errors", _DEFAULT.max_consecutive_errors)),
+		daily_action_quota=int(data.get("daily_action_quota", _DEFAULT.daily_action_quota)),
+		cooldown_seconds=int(data.get("cooldown_seconds", _DEFAULT.cooldown_seconds)),
+		schedule_enabled=bool(data.get("schedule_enabled", _DEFAULT.schedule_enabled)),
+		work_start_hour=int(data.get("work_start_hour", _DEFAULT.work_start_hour)),
+		work_end_hour=int(data.get("work_end_hour", _DEFAULT.work_end_hour)),
+		lunch_start_hour=int(data.get("lunch_start_hour", _DEFAULT.lunch_start_hour)),
+		lunch_end_hour=int(data.get("lunch_end_hour", _DEFAULT.lunch_end_hour)),
+		lunch_quota_factor=float(data.get("lunch_quota_factor", _DEFAULT.lunch_quota_factor)),
+		weekend_quota_factor=float(data.get("weekend_quota_factor", _DEFAULT.weekend_quota_factor)),
+		off_hours_quota_factor=float(data.get("off_hours_quota_factor", _DEFAULT.off_hours_quota_factor)),
+		random_start_jitter_seconds=int(
+			data.get("random_start_jitter_seconds", _DEFAULT.random_start_jitter_seconds)
+		),
 		tabs=tuple(str(item) for item in data.get("tabs", _DEFAULT.tabs)),
 		max_per_tab=int(data.get("max_per_tab", _DEFAULT.max_per_tab)),
 		questionnaire_message=str(data.get("questionnaire_message", _DEFAULT.questionnaire_message)),

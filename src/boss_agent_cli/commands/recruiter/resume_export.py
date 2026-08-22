@@ -363,6 +363,14 @@ def _atomic_write_bytes(path: Path, payload: bytes) -> None:
 		raise ResumeExportError(f"写入简历文件失败: {path} ({_reason(exc)})") from exc
 
 
+def atomic_write_export_bytes(path: Path, payload: bytes, *, label: str = "导出文件") -> None:
+	"""原子写入：先写同目录临时文件，再 os.replace 覆盖目标。
+
+	label 只用于不含业务正文的故障描述。在线简历和附件简历都复用此原子写入原语。
+	"""
+	_atomic_write_bytes(path, payload)
+
+
 def _present_sections(resume: dict[str, Any]) -> list[str]:
 	"""列出实际有内容的段落，作为下游分析的「这份文件里有什么」提示。"""
 	data = _as_dict(resume)

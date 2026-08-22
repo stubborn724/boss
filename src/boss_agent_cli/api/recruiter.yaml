@@ -91,8 +91,10 @@ endpoints:
   # ── 职位管理 ────────────────────────────────────────
   boss_job_list:
     method: GET
-    path: "/wapi/zpjob/job/chatted/jobList"
-    referer: "/web/chat/index"
+    # 聊天页的 chatted/jobList 只返回已产生沟通的关联岗位，不能作为招聘者
+    # 职位管理的真源；同步必须读取职位管理页对应的全部岗位列表。
+    path: "/wapi/zpjob/job/manage/jobList"
+    referer: "/web/user/chat/jobList"
   boss_job_offline:
     method: POST
     path: "/wapi/zpjob/job/offline"

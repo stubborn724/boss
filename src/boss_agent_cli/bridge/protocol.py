@@ -24,10 +24,11 @@ DAEMON_IDLE_TIMEOUT = int(os.getenv("BOSS_BRIDGE_TIMEOUT", str(4 * 3600)))
 class BridgeCommand:
 	"""CLI → daemon → 扩展 的命令。"""
 	id: str
-	action: str  # exec | navigate | cookies | close-window
+	action: str  # exec | navigate | downloads-list | cookies | close-window
 	code: str = ""
 	url: str = ""
 	domain: str = ""
+	since_ms: int = 0
 	workspace: str = "boss"
 	tab_id: int | None = None
 
@@ -39,6 +40,8 @@ class BridgeCommand:
 			d["url"] = self.url
 		if self.domain:
 			d["domain"] = self.domain
+		if self.since_ms > 0:
+			d["sinceMs"] = self.since_ms
 		if self.workspace:
 			d["workspace"] = self.workspace
 		if self.tab_id is not None:

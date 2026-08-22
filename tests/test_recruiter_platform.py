@@ -91,6 +91,53 @@ def test_friend_list_delegates():
 	assert result == {"code": 0, "zpData": {"result": []}}
 
 
+def test_select_conversation_job_delegates_to_rpa_client():
+	"""岗位自动化必须能通过平台适配层切换 BOSS 沟通列表职位。"""
+	client = _mock_client()
+	client.select_conversation_job.return_value = {"code": 0, "zpData": {"selectedJobName": "Java"}}
+	platform = BossRecruiterPlatform(client)
+
+	result = platform.select_conversation_job("Java")
+
+	client.select_conversation_job.assert_called_once_with("Java")
+	assert result == {"code": 0, "zpData": {"selectedJobName": "Java"}}
+
+
+def test_select_all_conversation_jobs_delegates_to_rpa_client():
+	"""全部岗位读取必须显式清除 BOSS 当前职位筛选。"""
+	client = _mock_client()
+	client.select_all_conversation_jobs.return_value = {"code": 0, "zpData": {"selectedScope": "all"}}
+	platform = BossRecruiterPlatform(client)
+
+	result = platform.select_all_conversation_jobs()
+
+	client.select_all_conversation_jobs.assert_called_once_with()
+	assert result == {"code": 0, "zpData": {"selectedScope": "all"}}
+
+
+def test_fast_conversation_snapshot_delegates_to_rpa_client():
+	"""后台轮询必须经适配器取得快速未读快照，不能静默退回全量分页扫描。"""
+	client = _mock_client()
+	client.fast_conversation_snapshot.return_value = {"code": 0, "zpData": {"friendList": [{"friendId": 123, "unreadMsgCount": 1}]}}
+	platform = BossRecruiterPlatform(client)
+
+	result = platform.fast_conversation_snapshot()
+
+	client.fast_conversation_snapshot.assert_called_once_with()
+	assert result == {"code": 0, "zpData": {"friendList": [{"friendId": 123, "unreadMsgCount": 1}]}}
+
+
+def test_fast_conversation_snapshot_forwards_full_snapshot_flag():
+	"""首轮同步必须透传完整快照标记，不能重新走逐页读取。"""
+	client = _mock_client()
+	client.fast_conversation_snapshot.return_value = {"code": 0, "zpData": {"friendList": []}}
+	platform = BossRecruiterPlatform(client)
+
+	platform.fast_conversation_snapshot(include_all=True)
+
+	client.fast_conversation_snapshot.assert_called_once_with(include_all=True)
+
+
 def test_view_geek_delegates():
 	client = _mock_client()
 	client.view_geek.return_value = {"code": 0, "zpData": {"name": "Alice"}}
@@ -197,37 +244,61 @@ def _ctx(**obj):
 	return SimpleNamespace(obj=obj)
 
 
-def test_recruiter_instance_defaults_to_zhipin_and_passes_delay_and_cdp(monkeypatch):
+def test_recruiter_instance_uses_explicit_cdp_only_when_bridge_is_unavailable(monkeypatch):
 	captured: dict = {}
+	bridge = MagicMock()
+	bridge.is_extension_connected.return_value = False
 
 	class _Client:
-		def __init__(self, auth, *, delay, cdp_url):
-			captured.update(auth=auth, delay=delay, cdp_url=cdp_url)
+		def __init__(self, *, cdp_url):
+			captured["cdp_url"] = cdp_url
 
-	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BossRecruiterClient", _Client)
-	auth = MagicMock()
-	platform = get_recruiter_platform_instance(_ctx(delay=(2.0, 4.0), cdp_url="http://localhost:9222"), auth)
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BridgeClient", lambda: bridge)
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BossRPAClient", _Client)
+	platform = get_recruiter_platform_instance(_ctx(cdp_url="http://localhost:9222"), MagicMock())
 
 	assert isinstance(platform, BossRecruiterPlatform)
-	assert captured["auth"] is auth
-	assert captured["delay"] == (2.0, 4.0)
 	assert captured["cdp_url"] == "http://localhost:9222"
 
 
-def test_recruiter_instance_falls_back_to_default_delay_when_ctx_is_empty(monkeypatch):
-	captured: dict = {}
+def test_recruiter_instance_empty_context_requires_browser_rpa(monkeypatch):
+	bridge = MagicMock()
+	bridge.is_extension_connected.return_value = False
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BridgeClient", lambda: bridge)
 
-	class _Client:
-		def __init__(self, auth, *, delay, cdp_url):
-			captured.update(delay=delay, cdp_url=cdp_url)
-
-	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BossRecruiterClient", _Client)
-	get_recruiter_platform_instance(SimpleNamespace(obj=None), MagicMock())
-
-	assert captured["delay"] == (1.5, 3.0)
-	assert captured["cdp_url"] is None
+	with pytest.raises(Exception, match="专用 Chrome 未连接"):
+		get_recruiter_platform_instance(SimpleNamespace(obj=None), MagicMock())
 
 
 def test_recruiter_instance_rejects_platform_without_recruiter_adapter():
 	with pytest.raises(ValueError):
 		get_recruiter_platform_instance(_ctx(platform="zhilian"), MagicMock())
+
+
+def test_recruiter_instance_prefers_explicit_dedicated_cdp_over_bridge(monkeypatch):
+	"""专用 Chrome 已配置时，不能被普通 Chrome Bridge 抢占。"""
+	bridge = MagicMock()
+	bridge.is_extension_connected.return_value = True
+	cdp_client = MagicMock()
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BridgeClient", lambda: bridge)
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BossRPAClient", lambda *, cdp_url: cdp_client)
+
+	platform = get_recruiter_platform_instance(
+		_ctx(cdp_url="http://127.0.0.1:9222"), MagicMock(),
+	)
+
+	assert isinstance(platform, BossRecruiterPlatform)
+	assert platform._client is cdp_client
+	bridge.is_extension_connected.assert_not_called()
+
+
+def test_recruiter_instance_without_bridge_or_cdp_refuses_api_fallback(monkeypatch):
+	"""招聘 RPA 未就绪必须给出错误，不得伪造 API 平台数据。"""
+	from boss_agent_cli.rpa.boss_client import BossRPAConnectionError
+
+	bridge = MagicMock()
+	bridge.is_extension_connected.return_value = False
+	monkeypatch.setattr("boss_agent_cli.commands._recruiter_platform.BridgeClient", lambda: bridge)
+
+	with pytest.raises(BossRPAConnectionError, match="专用 Chrome 未连接"):
+		get_recruiter_platform_instance(_ctx(), MagicMock())

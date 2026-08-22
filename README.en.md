@@ -126,7 +126,7 @@ with BossClient(AuthManager(...)) as client:
 
 ## 📚 Commands
 
-`boss schema` exposes 39 top-level commands + 10 first-level recruiter subcommands, grouped by workflow:
+`boss schema` exposes 39 top-level commands + 15 first-level recruiter subcommands, grouped by workflow:
 
 - **Auth**: `login` · `logout` · `status` · `doctor`
 - **Discover**: `search` · `detail` · `show` · `cities` · `history`

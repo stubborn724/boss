@@ -1050,6 +1050,11 @@ SCHEMA_DATA = {
 				"applications": "受限：查看候选人投递申请列表",
 				"resume": "受限：查看候选人在线简历或发起联系方式交换",
 				"download-resume": "受限：把单个候选人在线简历导出为本地 Markdown 文件（不进 MCP）",
+				"batch-download-resume": "受限：有界地批量导出候选人已有简历，或仅扫描附件可用性（不进 MCP）",
+				"screen": "受限：按本地岗位标准分析 PDF、Markdown 或文本简历，生成需人工确认的评分报告",
+				"job-standard": "把自然语言岗位要求预览或保存为本地结构化人才标准",
+				"job-standards": "列出本地岗位标准及其发布状态",
+				"ai-dialogue": "受限：读取候选人最新沟通并用 AI 生成下一步回复；简历仅在初聊通过后分析",
 				"chat": "受限：查看与候选人的沟通列表（含未读数和最近消息摘要）",
 				"chatmsg": "受限：查看与指定候选人的聊天消息历史",
 				"last-messages": "受限：批量查看候选人最近消息摘要",
@@ -1101,6 +1106,11 @@ SCHEMA_DATA = {
 		},
 	},
 	"error_codes": {
+		"RECOMMENDATION_DAILY_QUOTA_REACHED": {
+			"message": "BOSS 推荐牛人今日沟通已达上限",
+			"recoverable": True,
+			"recovery_action": "今天改用沟通列表，次日推荐牛人自动恢复",
+		},
 		"AUTH_EXPIRED": {
 			"message": "登录态过期",
 			"recoverable": True,
