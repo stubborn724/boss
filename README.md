@@ -1,236 +1,385 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" width="112" alt="boss-agent-cli logo">
+# BOSS 直聘招聘自动化（RPA）
 
-# boss-agent-cli
+**面向 BOSS 直聘招聘者（HR）侧的浏览器 RPA 自动化工具**：本地 Web 控制台 + 沟通列表 / 推荐牛人自动化 + 简历下载解析评分 + 候选人池 + 后续跟进，一站式完成招聘闭环里的重复劳动。
 
-*🤖 专为 AI Agent 设计的 BOSS 直聘本地辅助 CLI —— 搜索 · 福利筛选 · 候选池 · JSON 信封，默认 assisted，支持显式 Research Mode。*
+![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+![uv](https://img.shields.io/badge/uv-managed-2A2734)
+![Status](https://img.shields.io/badge/status-Beta-orange)
+![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey?logo=windows)
 
-[![CI](https://github.com/can4hou6joeng4/boss-agent-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/can4hou6joeng4/boss-agent-cli/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/can4hou6joeng4/boss-agent-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/can4hou6joeng4/boss-agent-cli)
-[![Python](https://img.shields.io/badge/Python-≥3.10-3776AB?logo=python&logoColor=white&style=flat-square)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/can4hou6joeng4/boss-agent-cli?style=flat-square)](https://github.com/can4hou6joeng4/boss-agent-cli/releases)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/boss-agent-cli?style=flat-square)](https://pypi.org/project/boss-agent-cli/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/can4hou6joeng4/boss-agent-cli/pulls)
-[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fcan4hou6joeng4%2Fboss-agent-cli.svg)](https://mcptoplist.com/server/glama%2Fcan4hou6joeng4%2Fboss-agent-cli)
-
-[快速上手](docs/getting-started.md) · [Agent 集成](#-agent-集成) · [命令](#-命令) · [排障](docs/troubleshooting.md) · [路线图](ROADMAP.md) · **中文** | [English](README.en.md)
-
-<a href="demo/showcase/boss-agent-cli-showcase.mp4" title="观看完整项目展示视频">
-  <img src="demo/showcase/boss-agent-cli-showcase.gif" alt="boss-agent-cli 项目展示动图" width="100%">
-</a>
-
-**[观看完整展示视频](demo/showcase/boss-agent-cli-showcase.mp4)** · [终端交互演示](demo/demo-zh.gif) · schema 驱动 · 福利筛选 · JSON 信封
+**中文** · [快速开始](#-快速开始) · [功能](#-功能模块) · [自动化流程](#-自动化流程) · [评分体系](#-候选人评分体系) · [技术架构](#-技术架构) · [排障](#-常见问题与排障)
 
 </div>
 
-<p align="center">
-  <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=boss-agent-cli">
-    <img src="docs/assets/atlas-cloud-logo.png" alt="Atlas Cloud" width="180">
-  </a>
-</p>
+---
 
-> 🎁 **[Atlas Cloud](https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=boss-agent-cli)** 为 `boss ai` 提供了一个全模态、OpenAI 兼容的推理入口 —— 一个 key 即可访问 DeepSeek、Qwen、GLM、Kimi、MiniMax、Claude、GPT 等模型，无需逐家接入。在 `boss ai config` 里选用 `--provider atlas`（`base_url=https://api.atlascloud.ai/v1`、默认模型 `deepseek-ai/deepseek-v4-pro`）即可，配置详见 [AI 模型接入](docs/integrations/ai-models.md#atlas-cloud一个-key-覆盖多家模型)；预算友好的 [coding plan](https://www.atlascloud.ai/console/coding-plan)。
+## 📖 目录
 
-> [!TIP]
-> <img src="https://github.com/peterfei/ai-agent-team/raw/main/examples/doloffer.png" alt="Doloffer logo" width="220">
->
-> **Doloffer Guide** 致力于让优质 AI 工具的获取更简单。平台主打 GPT 与 Claude 等主流 AI 服务的正版会员充值，提供一站式订阅管理，主打安全稳定与无忧售后。
->
-> 💡 **极速订阅**： [专属链接](https://doloffer.com/friend/BEv3yvKS)（输入优惠码 `AI8888` 享 9 折特惠）
+- [项目简介](#-项目简介)
+- [为什么用 RPA](#-为什么用-rpa)
+- [与上游项目的关系](#-与上游项目的关系)
+- [核心特性](#-核心特性)
+- [快速开始](#-快速开始)
+- [典型使用流程](#-典型使用流程)
+- [功能模块](#-功能模块)
+- [自动化流程](#-自动化流程)
+- [候选人对话状态机](#-候选人对话状态机)
+- [候选人评分体系](#-候选人评分体系)
+- [命令行参考](#-命令行参考)
+- [本地 API 接口](#-本地-api-接口)
+- [技术架构](#-技术架构)
+- [目录结构](#-目录结构)
+- [数据与隐私](#-数据与隐私)
+- [开发与测试](#-开发与测试)
+- [常见问题与排障](#-常见问题与排障)
+- [未来规划](#-未来规划)
+- [免责声明](#-免责声明)
+- [致谢](#-致谢)
+- [许可证](#-许可证)
 
-## 🧭 为什么
+## 📌 项目简介
 
-自动投递、批量打招呼这类求职脚本，本质是在替平台做它不希望自动化的事——账号被封只是时间问题。boss-agent-cli 反其道而行：**把「低风险、只读、你主动触发」的那部分交给终端和 Agent，把打招呼 / 投递 / 沟通这类敏感动作留给你在官网手动完成。** 你描述期望，Agent 负责搜索、筛选、整理候选岗位并输出结构化 JSON；`boss schema` 是能力真源，天然适配 Claude / Cursor 等 MCP 宿主。合规不是事后补丁，而是默认姿态。
+本工具面向 **BOSS 直聘的招聘者（HR）**，把「找候选人 → 打招呼 → 问答筛选 → 索要简历 → 下载解析 → 评分入库 → 换微信 / 换电话 / 约面试」这一整套重复流程，用**浏览器 RPA（Robotic Process Automation）**的方式自动化，通过一个**本地 Web 控制台**统一操作和观察。
 
-## ⚠️ 合规边界
+核心思路：**不逆向接口，直接操作真实浏览器**。工具通过 Chrome DevTools Protocol（CDP）连上真实 Chrome，在 BOSS 官方网页里模拟真人点击、跳转、输入，读取页面 DOM 得到数据，而不是在后台调用 BOSS 内部接口。
 
-默认启用 **Assisted Mode**：本地辅助 · 只读优先 · 用户主动触发。打招呼（greet / batch-greet）、投递、联系方式交换、招聘者候选人搜索 / 简历 / 聊天、消息回复等敏感能力默认阻断并返回 `COMPLIANCE_BLOCKED`；需要时请回到 BOSS 直聘平台官网由用户手动完成。仓库同时允许显式 `boss config set operating_mode research` 启用 **Research Mode**，用于有界的浏览器协议、反调试、风控适配和受控采集研究；该模式仍要求脱敏、checkpoint、停止开关和可审计脚本来源。
+## 🤔 为什么用 RPA
 
-## ✨ 核心能力
+| 方案 | 做法 | 问题 |
+|---|---|---|
+| 逆向内部 API | 抓包还原 BOSS 私有接口，`httpx` 直接请求 | 接口随时漂移、鉴权 / 加密复杂、特征明显，极易触发风控 |
+| **RPA（本项目）** | CDP 连真实 Chrome，模拟真人操作真实页面 | 与真人浏览几乎无差别，接口变化不影响 DOM 选择器稳定性，封号风险更低 |
 
-- **职位发现**：关键词搜索 + 8 维筛选，按编号回看缓存结果 —— `search` `show` `detail`
-- **福利筛选（核心差异化）**：`--welfare "双休,五险一金"` 自动翻页补抓、按 AND 逻辑做**真实匹配**，并可 `--sort score` 按本地匹配分排序 —— `search --welfare`
-- **本地候选池与统计**：查看详情后本地保存、同步网页职位收藏 / 用标签和备注复盘候选岗位、离线对比、查看漏斗统计；投递与沟通回到官网手动完成 —— `shortlist` `stats` `watch` `preset` `favorites`
-- **AI 求职增强 + 本地模型**：JD 分析、简历润色、定向优化、候选池匹配、模拟面试、沟通指导；本地模型权重外置，支持 Ollama/vLLM OpenAI 兼容接口 —— `ai analyze-jd` `ai local configure` `ai local smoke`
-- **Schema 驱动 + JSON 信封**：stdout 只输出 `{ok, data, pagination, error, hints}` 信封，`boss schema` 是能力真源，适合 CLI 编排 / Shell Agent / MCP / Python SDK
-- **招聘者最小闭环**：职位列表与上下架（`hr jobs list/online/offline`）；候选人个人数据链路默认阻断
-- **多平台抽象**：`Platform` / `RecruiterPlatform` 双注册表，`--platform zhipin|zhilian|qiancheng`
+具体取舍：
+
+- **不注入 Playwright / patchright、不改 `navigator`**：让 BOSS 看不出是自动化；
+- **真人化操作**：点击、跳转、输入都走浏览器原生行为，而不是批量请求；
+- **选择器集中管理、多级 fallback**：BOSS 前端小改，只需要更新 `pages.py` 一个文件；
+- **本地控制台**：自动化过程全程可视化、可暂停、可停止，而非黑盒脚本。
+
+## 🔗 与上游项目的关系
+
+本项目 fork 自求职者侧的 AI Agent CLI [boss-agent-cli](https://github.com/can4hou6joeng4/boss-agent-cli)，**仅保留了仓库骨架**；核心实现已完全改为 **RPA 浏览器自动化** 路线，与原项目采用的技术方案（逆向接口调用 / MCP / schema JSON 信封 / 求职者侧搜索与福利筛选）无关。
+
+| | 上游 boss-agent-cli | 本项目 |
+|---|---|---|
+| 目标用户 | 求职者 | 招聘者（HR） |
+| 核心能力 | 搜索、福利筛选、候选池、AI 求职增强 | 沟通列表 / 推荐牛人自动化、简历下载评分、后续跟进 |
+| 技术路线 | 逆向 API + MCP + schema | CDP 直连浏览器 RPA |
+| 交互方式 | CLI / MCP | 本地 Web 控制台 |
+
+## ✨ 核心特性
+
+- **🔐 安全登录**：通过 BOSS 官方页面登录，本地不保存账号密码；支持复用已启动的 Chrome CDP 会话，也支持由程序准备专用浏览器。
+- **📋 岗位管理**：同步 BOSS 职位；**按岗位独立**维护招聘标准；支持自然语言补充要求并生成结构化规则草稿（需人工确认后启用），BOSS 平台硬条件与本地规则合并使用。
+- **💬 沟通列表自动化**：固定本轮快照，优先处理已回复 / 消息有变化的人；自动打招呼 → 非专业问题 → 专业问题 → 索要简历，全程去重、不阻塞其他候选人。
+- **⭐ 推荐牛人自动化**：按岗位批量打招呼，每发送 20 位回沟通列表检查回复 / 附件；达到当日沟通上限自动停止并提示，不影响沟通列表继续处理。
+- **📄 简历下载与解析**：在线简历预览 + 附件简历确认下载，OCR / PDF 解析出简历正文。
+- **🎯 候选人评分**：三层评分（BOSS 平台硬条件 + 本地确定性规则 + AI 语义证据），按岗位隔离。
+- **🤝 后续跟进**：达到岗位标准的候选人按设置自动执行换微信 / 换电话 / 约面试（支持顺序、重试与退避配置）。
+- **📊 候选人池导出**：评分、硬条件判断、语义匹配、风险信号、评分拆解与 AI 证据可视化，支持 CSV / Excel 批量导出。
+- **⏰ 定时任务**：沟通列表、推荐牛人、全流程自动化均支持运行时间窗口配置。
 
 ## 🚀 快速开始
 
-```bash
-# 安装（uv 推荐；浏览器内核仅用于用户主动登录 / 本地导出）
-uv tool install boss-agent-cli
-patchright install chromium
+### 环境要求
 
-# 跑通低风险闭环
-boss doctor                                                   # 环境自检
-boss login                                                    # 用户主动登录（按平台选择链路）
-boss status                                                   # 验证登录态
-boss search "Golang" --city 广州 --welfare "双休,五险一金"     # 搜索 + 福利筛选
-boss detail <security_id>                                     # 查看详情
-boss shortlist add <security_id> <job_id> --tags 后端,远程    # 加入本地候选池并打本地标签
-boss shortlist compare --tag 远程                             # 离线对比候选岗位
-boss stats                                                    # 本地统计
+- Python ≥ 3.10
+- [uv](https://github.com/astral-sh/uv)（Python 环境与依赖管理）
+- Chrome / Edge（用于 CDP 直连）
+- Tesseract OCR（简历截图识别，可选，路径在脚本中配置）
 
-# 招聘者模式（候选人数据链路默认阻断）
-boss hr jobs list
-```
-
-所有命令输出结构化 JSON（`ok` 判断成败，`exit 0/1`）。完整上手见 [快速上手](docs/getting-started.md)。
-
-## 🎭 角色与多平台
-
-| 平台 | 求职者 | 招聘者 | 状态 |
-|------|:--:|:--:|------|
-| BOSS 直聘 (`zhipin`) | ✅ | ✅ | 默认 |
-| 智联招聘 (`zhilian`) | ✅ 候选者侧只读 + 本地辅助对等 | 🟡 `agent` browser/CDP 自动化 V1 | `hr` 子命令仍仅限 BOSS；智联招聘者侧通过 `boss --platform zhilian --role recruiter agent ...` 进入 |
-| 前程无忧 / 51job (`qiancheng`) | 🚧 已注册占位 | — | 统一返回 `NOT_SUPPORTED`，待只读研究门槛满足后再接入 |
-
-```bash
-boss --platform zhilian search "Python"   # 指定平台（也支持 --platform zhipin|zhilian|qiancheng）
-boss config set platform zhilian          # 设为默认
-```
-
-`boss hr ...` 当前仅支持默认招聘者平台 `zhipin-recruiter`；智联招聘者侧自动化走 `agent` 命令和 browser/CDP adapter。设计细节见 [docs/platform-abstraction.md](docs/platform-abstraction.md)。
-
-## 🤖 Agent 集成
-
-推荐先读：[Agent Quickstart](docs/agent-quickstart.md) · [Capability Matrix](docs/capability-matrix.md) · [Host Examples](docs/agent-hosts.md)
-
-```json
-// 方式一：MCP（推荐）—— Claude Desktop / Cursor 等 MCP 宿主，暴露 50 个低风险与本地任务工具
-{ "mcpServers": { "boss-agent": { "command": "uvx", "args": ["--from", "boss-agent-cli[mcp]", "boss-mcp"] } } }
-```
-
-不想在本机配 Python 工具链，可用仓库自带的容器：`BOSS_UID=$(id -u) BOSS_GID=$(id -g) docker compose run --rm boss-mcp`。镜像刻意不含浏览器内核 —— 先在宿主机 `boss login`，再把 `~/.boss-agent` 挂进去，详见 [Docker 接入](docs/integrations/docker.md)。
-
-OpenCode 源码项目可直接使用仓库示例：
-
-```bash
-cp examples/opencode/opencode.json ./opencode.json
-uv sync --all-extras
-uv run boss-mcp --data-dir ./.boss-agent --help
-```
-
-portable / 全局安装后，在任意 OpenCode 项目里使用 `examples/opencode.json`，它会启动 `boss-mcp --data-dir ./.boss-agent`，让 review、pending、日志按项目隔离。
-
-```bash
-# 方式二：subprocess —— 先让 Agent 读能力自描述，再解析 stdout JSON
-boss schema
-```
-
-```python
-# 方式三：Python 直接嵌入（随 py.typed 发布，可作类型化库）
-from boss_agent_cli import AuthManager, BossClient, AuthRequired
-with BossClient(AuthManager(...)) as client:
-    result = client.search_jobs("Golang", city="广州")
-```
-
-## 📚 命令
-
-`boss schema` 暴露 39 个顶层命令 + 15 个一级招聘者子命令，按工作流分组：
-
-- **认证**：`login` · `logout` · `status` · `doctor`
-- **职位发现**：`search` · `detail` · `show` · `cities` · `history`
-- **本地整理**：`watch` · `preset` · `shortlist` · `stats` · `favorites`
-- **受限研究采集**：`crawl configure/run/start/status/results/resume/stop/shortlist`（仅显式 `operating_mode=research`；MCP 仅读取或本地导入已有 run）
-- **简历 / AI**：`resume` · `me` · `ai analyze-jd` · `ai polish` · `ai optimize` · `ai fit` · `ai suggest-keywords` · `ai resume-optimize` · `ai cover-letter` · `ai interview-prep` · `ai chat-coach` · `ai local`
-- **系统**：`schema` · `platforms` · `export` · `config` · `clean` · `web`
-- **招聘者**：`hr jobs list/online/offline`
-- **受限动作（默认低风险模式阻断）**：`greet` · `batch-greet` · `apply` · `exchange` · `chat*` · `pipeline` · `digest`
-
-完整命令表、参数与福利筛选原理见 **[命令参考](docs/commands.md)**；能力真源是 `boss schema`（支持 `--format openai-tools` / `anthropic-tools` 导出工具定义）。
-
-批量采集需要额外安装 `uv sync --extra crawl`。它只在显式 `operating_mode=research` 模式运行，自建并退出清理 `<data-dir>/crawl/chrome-profile`，不会接管日常 Chrome profile。默认不注入 Hook；如确有已获授权的本地脚本需求，必须同时显式提供 Hook 档位和包含 `SHA256SUMS` 的目录：
+### 1. 安装依赖
 
 ```powershell
-boss crawl configure --max-requests 20 --max-details 50 --max-seconds 600 --max-retries 1
-boss crawl run "AI" --city 杭州 --pages 3 --with-detail `
-  --hook-profile screenshot-full --hook-dir E:\boss-agent-cli-local-hooks\AntiDebug_Breaker
-boss crawl resume <run_id>
-boss crawl stop <run_id>
-boss agent crawl --run-id <run_id> --resume <简历名>
+git clone https://github.com/stubborn724/boss.git
+cd boss
+uv sync --all-extras
 ```
 
-`crawl run` 顺序执行并保存 SQLite 断点和 JSON / CSV / XLSX 增量产物；请求数、详情数、墙钟时间和重试均受固定预算约束，`boss crawl stop` 可在下一个安全点停止。导出和 `crawl results` 默认不会暴露 `security_id`、职位 ID 或招聘者字段；执行 `boss clean --privacy` 会删除 crawl 状态、预算和导出。MCP 保持 assisted-only，只能通过 `crawl_status`、`crawl_results` 和 `crawl_shortlist` 读取或本地导入已有 `run_id`；创建、恢复和停止由显式 Research Mode CLI 完成。出现平台风险码或安全页时停止并返回恢复命令。`boss agent crawl --run-id` 只分析已完成任务；新建真实 Chrome 采集还需设置 `operating_mode=research` 并传入 `--allow-crawl`。
+### 2. 启动本地控制台
 
-## 🩺 诊断与排障
-
-```bash
-boss doctor             # 环境自检
-boss status --live      # 可选：一次低频只读探测
-boss doctor --live-probe
+```powershell
+uv run boss web --port 8765
 ```
 
-错误信封统一携带 `code` + `recoverable` + `recovery_action`，可程序化恢复。Browser Bridge 本地诊断覆盖 `bridge_daemon` / `bridge_extension` / `bridge_protocol` / `bridge_workspace` / `bridge_exec` / `bridge_fetch` / `bridge_navigate` 七项，daemon 用 `python -m boss_agent_cli.bridge.daemon --serve` 启动。Assisted Mode 命中平台风控时停止自动化访问；Research Mode 可运行显式声明的风控适配器，但必须有限运行、保存 checkpoint，并由用户主动决定是否继续。
+浏览器打开 <http://127.0.0.1:8765/>。端口被占用时可换成 `--port 8766` 等。
 
-完整检查项、CDP 启动示例与错误码见 **[诊断与排障](docs/troubleshooting.md)**；涉及 Cookie / CDP / patchright / 请求频率 / 接口漂移的问题先读 [平台风险边界](docs/platform-risk.md)。
+### 3. 登录 BOSS
 
-## ⚙️ 配置
+方式一：直接在控制台「登录状态」模块打开 BOSS 登录页，在官方页面完成登录。
 
-```bash
-boss config list                    # 查看所有配置
-boss config set log_level debug     # 设置日志级别
-boss config reset                   # 恢复默认
+方式二：复用已有 Chrome，需先以 CDP 调试端口启动（常用 `9222`）：
+
+```powershell
+$chrome = @(
+  "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+  "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+  "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+& $chrome `
+  --remote-debugging-port=9222 `
+  --remote-allow-origins=* `
+  --user-data-dir="$env:LOCALAPPDATA\boss-agent-cdp-profile"
 ```
 
-配置位于 `~/.boss-agent/config.json`：运行模式（`operating_mode=assisted|research`）、请求间隔、批量打招呼间隔、日志级别、CDP 地址、导出目录、平台 / 角色。
+再通过 CDP 登录：
+
+```powershell
+uv run boss --cdp-url http://localhost:9222 login --cdp
+```
+
+### 4. 配置岗位并开始
+
+控制台内依次：**同步职位 → 选择岗位 → 确认招聘标准 → 同步沟通列表 → 开始自动化**。
+
+## 🧭 典型使用流程
+
+```text
+启动控制台
+  └─ 打开 BOSS 官方页面并登录
+       └─ 同步 BOSS 职位
+            └─ 选择目标岗位
+                 └─ 确认硬条件 / 专业规则 / 评分规则
+                      └─ 同步该岗位沟通列表
+                           ├─ 优先处理已回复 / 消息有变化的候选人
+                           ├─ 再处理尚未首次检查的候选人
+                           │    └─ 首轮非专业问题 → 专业问题 → 索要简历
+                           ├─ 发现附件简历 → 点击确认/同意 → 下载到本地
+                           ├─ 解析简历 → 用已确认规则评分
+                           ├─ 合格候选人进入候选人池
+                           └─ 按设置换微信 / 换电话 / 约面试
+                                └─ 导出候选人池
+```
+
+> 沟通列表每轮固定快照顺序；自动化期间新进入列表的候选人放入下一周期，避免页面变化导致当前队列跳动、重复点击或遗漏回复。
+
+## 🧩 功能模块
+
+| 模块 | 功能说明 |
+|---|---|
+| **登录状态** | 查看本地登录态、浏览器 / CDP 状态、平台连接状态；账号密码不落盘 |
+| **岗位管理** | 同步职位；逐岗位维护招聘标准；自然语言补充要求 → AI 生成规则草稿（确认后启用） |
+| **在线简历** | 刷新沟通列表、按全部 / 指定岗位筛选、查看候选人 BOSS 在线简历、读取卡片信息与沟通详情 |
+| **BOSS 自动化** | 沟通列表 / 推荐牛人自动化；暂停 / 继续 / 停止；查看处理队列、活动日志、候选人阶段；定时任务 |
+| **候选人** | 查看通过筛选与评估的候选人；评分、硬条件、语义匹配、风险信号、评分拆解与 AI 证据；候选人池导出 |
+| **后续跟进** | 候选人电话 / 微信 / 约面试结果管理（动作取决于岗位设置与自动化开关） |
+| **设置** | 面试邀请字段、自动化开关、重试退避、定时窗口、AI 服务 / 模型 / 运行模式 |
+
+## ⚙️ 自动化流程
+
+### 沟通列表自动化
+
+处理原则：
+
+1. 固定本轮沟通列表快照；
+2. 优先处理已回复、未读标记或消息版本发生变化的人；
+3. 已完成专业问答的人直接评估回答，不重复提问；
+4. 已问过非专业问题的人不重复问；
+5. 已索要简历但尚未发附件的人进入等待状态，不阻塞其他候选人；
+6. 之前等待附件的人后来发来简历，重新进入附件终审优先队列；
+7. 已下载、已分析、已进入候选人池的人不重复沟通；
+8. 当前候选人完成当前步骤后才切换下一位。
+
+### 推荐牛人自动化
+
+- 按当前岗位运行，先确认岗位话术与 BOSS 推荐页岗位筛选一致；
+- 每发送 20 位后回到沟通列表检查回复与附件状态；
+- 达到 BOSS 推荐牛人当日沟通上限时，页面提示原因、停止推荐牛人，但继续允许沟通列表处理已产生的会话。
+
+### 全流程自动化
+
+```text
+沟通列表自动化
+  └─ 完成当前岗位已有会话的沟通与附件处理
+       └─ 每 20 位推荐牛人回沟通列表检查
+            └─ 推荐牛人自动化
+                 └─ 推荐产生的新会话进入下一轮沟通列表处理
+```
+
+> 推荐牛人只负责产生新的沟通入口，后续回复、专业问答、简历与候选人池处理仍以沟通列表为准，两条流水线不能割裂。
+
+## 🔁 候选人对话状态机
+
+候选人对话按以下 9 个状态推进，而非简单看「是否出现在当前页面」：
+
+| # | 阶段 | 含义 |
+|---|---|---|
+| 1 | 首次检查 | 无历史阶段与有效消息游标 |
+| 2 | 已发非专业问题 | 等待候选人回复 |
+| 3 | 非专业问题已回复 | 根据回答决定是否进入专业问题 |
+| 4 | 已发专业问题 | 等待候选人回复 |
+| 5 | 专业问题已回复 | 立即评估回答，不得再次发送专业问题 |
+| 6 | 已索要简历 | 等待附件或在线简历状态变化 |
+| 7 | 已收到附件 | 优先执行 BOSS 附件确认、下载与分析 |
+| 8 | 已分析 | 按岗位标准进入候选人池或记录不通过原因 |
+| 9 | 已完成 | 不再重复沟通 |
+
+> 消息判断需同时参考未读标记、最后一条候选人消息、消息版本 / 时间游标、我方最后一条消息和本地持久化阶段，不能只依赖「未读」，否则会漏掉已点开聊天框后才到达的新消息。
+
+## 🎯 候选人评分体系
+
+评分分三层，逐层收敛：
+
+1. **BOSS 平台硬条件**：学历、经验、城市、薪资、职位等平台条件；
+2. **本地确定性规则**：岗位技能、年限、行业经历、稳定性、业务要求等；
+3. **AI 语义辅助**：只提取可在简历正文中核对的语义证据，不替代硬筛、不在规则不明确时编造结论。
+
+进入候选人池的前提：
+
+- 当前岗位上下文有效；
+- BOSS 硬条件没有明确不匹配；
+- 专业问题已完成且回答已评估；
+- 附件简历已确认、下载、解析（或流程明确允许在线简历评分）；
+- 最终评分达到当前岗位阈值；
+- 必要时通过人工复核门禁。
+
+> 同一份简历在不同岗位下得到不同评分是正常行为；历史结果保留，新简历使用对应岗位的新版本规则，不因新规则上线而自动重算历史评分。
+
+## 💻 命令行参考
+
+| 命令 | 说明 |
+|---|---|
+| `uv run boss web --port 8765` | 启动本地 Web 控制台 |
+| `uv run boss doctor` | 环境自检 |
+| `uv run boss status --live` | 低频只读探测登录 / 连接状态 |
+| `uv run boss doctor --live-probe` | 带实时探测的深度自检 |
+| `uv run boss --cdp-url http://localhost:9222 login --cdp` | 通过 CDP 复用会话登录 |
+
+启动后可用 `Invoke-RestMethod http://127.0.0.1:8765/api/state` 做基础接口检查。
+
+## 🔌 本地 API 接口
+
+| 接口 | 用途 |
+|---|---|
+| `GET /api/state` | 登录态、自动化、同步、导出与岗位状态 |
+| `GET /api/recruiting/workspace` | 当前岗位工作台 |
+| `GET /api/recruiting/automation/settings` | 读取岗位自动化设置 |
+| `POST /api/recruiting/automation/settings` | 保存岗位自动化设置 |
+| `GET /api/recruiting/automation/schedules` | 读取定时任务 |
+| `POST /api/recruiting/automation/schedules` | 保存定时任务 |
+| `POST /api/recruiting/automation/sync` | 同步岗位沟通列表 |
+| `POST /api/recruiting/automation/start` | 启动沟通列表 / 推荐牛人自动化 |
+| `POST /api/recruiting/automation/pause` | 暂停自动化 |
+| `POST /api/recruiting/automation/resume` | 继续自动化 |
+| `POST /api/recruiting/automation/stop` | 停止自动化 |
+| `POST /api/conversations/{selection_id}/online-resume/open` | 打开在线简历预览 |
+| `POST /api/recruiting/automation/candidates/{candidate_key}/actions` | 执行候选人后续动作 |
+| `GET /api/recruiting/automation/candidate-pool/export` | 导出当前岗位候选人池 |
 
 ## 🏗️ 技术架构
 
+```text
+┌─────────────────────────────────────────────────────────┐
+│              本地 Web 控制台（aiohttp，默认 8765）          │
+│     路由 / 校验 / 统一 JSON 响应 / 同源写请求保护            │
+└────────────────────────┬────────────────────────────────┘
+                         │
+        ┌────────────────▼─────────────────┐
+        │   运行时 & 后台任务（串行访问 BOSS） │
+        │   任务状态 / 超时守卫 / 停止开关      │
+        └────────┬───────────────┬─────────┘
+                 │               │
+   ┌─────────────▼──────────┐  ┌─▼──────────────────────────┐
+   │   RPA 客户端（CDP 直连） │  │  业务编排层（recruiting）      │
+   │  WebSocket 执行 JS       │  │  岗位上下文 / 队列 / 对话状态   │
+   │  真人化点击 / 跳转 / 读取  │  │  评分引擎 / 附件索引 / 定时     │
+   └─────────────┬──────────┘  └─┬──────────────────────────┘
+                 │               │
+   ┌─────────────▼───────────────▼─┐
+   │  本地持久化（SQLite）· OCR/PDF  │
+   │  候选人池 · 岗位配置 · 沟通游标   │
+   └───────────────────────────────┘
 ```
-CLI (Click)
-  └─ 能力策略（默认 assisted；research 显式开放声明的研究能力）
-       └─ AuthManager ── 用户主动登录态（Fernet + PBKDF2 机器绑定加密）
-       └─ Platform 双注册表 ── BossPlatform / ZhilianPlatform / QianchengPlatform
-       └─ BossClient ── httpx + 节流（高斯延迟）；兼容 CDP / Bridge / patchright 登录与导出
-       └─ CacheStore（SQLite WAL） · AIService（OpenAI-compatible / Ollama / vLLM）
-            └─ output.py → JSON 信封 → stdout
+
+- **RPA 核心** `boss_agent_cli/rpa/`：`boss_client.py`（CDP 直连，纯 JS 操作）、`pages.py`（选择器集中管理，多级 fallback）、`bridge_boss_client.py`（Bridge 适配）。
+- **业务编排** `boss_agent_cli/recruiting/`：`automation_coordinator.py`（候选人队列 / 阶段推进）、`dialogue_state.py`（对话阶段 / 去重 / 游标）、`job_context.py`（岗位上下文隔离）、`hard_screening.py`（硬条件）、`ai_review.py`（AI 语义证据）。
+- **技术选型**：Python · Click · httpx · aiohttp · websockets · cryptography · sqlite3 · 本地 Web 服务。
+
+## 📁 目录结构
+
+```text
+src/boss_agent_cli/
+├── rpa/                    # RPA 核心：CDP 直连、页面选择器
+├── recruiting/             # 招聘业务编排：队列、对话状态、评分、候选人池
+├── web/                    # 本地 Web 控制台（aiohttp）
+├── commands/               # CLI 子命令（web / doctor / status / login …）
+├── auth/                   # 登录态、Cookie、持久化 Chrome
+├── api/                    # 平台接口封装（保留的上游骨架）
+├── platforms/              # 平台抽象（zhipin / zhilian / qiancheng）
+├── ai/                     # AI 服务与本地模型接入
+├── crawler/                # 受控采集（保留的上游骨架）
+├── automation/             # 通用自动化抽象
+├── resume/                 # 简历解析与导出
+└── cache/                  # SQLite 缓存
+scripts/
+├── rpa_automation.py       # RPA 批量处理脚本（沟通列表）
+└── test_rpa.py             # RPA 在线简历精确点击脚本
+docs/
+└── 交接文档.md              # 项目交接 / 部署 / 排障详细文档
 ```
 
-`QianchengPlatform (51job 占位适配器，统一返回 NOT_SUPPORTED)`：仅用于平台注册与 schema 可见性，接真实接口前需满足只读研究门槛。
+## 🔒 数据与隐私
 
-**不变量**：stdout 仅 JSON 信封 · stderr 仅日志 · `exit 0/1` · 错误含 `code/recoverable/recovery_action` · `boss schema` 为能力真源。
-**选型**：Python ≥ 3.10 · Click · httpx · patchright / CDP / Bridge（登录、导出与显式 Research Mode adapter）· cryptography（Fernet）· sqlite3（WAL）· pytest（1600+ 项）。
+所有登录态、候选人状态、简历、评分与任务计划都保存在**本地数据目录**（默认 `~/.boss-agent`）。
 
-## 🔌 本地存储
+以下内容**不得提交到 Git / 远程仓库**：
 
-所有状态在 `~/.boss-agent/`：加密登录态、搜索缓存、候选池、本地简历、AI 配置与外置模型登记。模型权重不进入 Python 包；除显式发起的 API 调用或本地模型下载外，数据不离开本机。
+- 本地简历正文与 PDF；
+- BOSS Cookie / Token / 登录态与浏览器用户目录；
+- 运行日志、调试转储、本机数据库。
 
-## 🤝 贡献者
+仓库已通过 `.gitignore` 忽略常见本地内容（`data/`、`recruiter/`、`*.log`、`.tmp/`、`.idea/` 等），新增输出目录时请人工复查。
 
-欢迎 Issue / PR：`git clone` → `feat/xxx` 分支 → 写测试 → `python scripts/quality_baseline.py`（Windows 中文系统可先 `$env:PYTHONUTF8='1'`）→ PR。详见 [CONTRIBUTING.md](CONTRIBUTING.md)，上手路径见 [快速上手](docs/getting-started.md)。
+## 🧪 开发与测试
 
-感谢每一位让 boss-agent-cli 变得更好的贡献者，去关注他们！❤️
+```powershell
+uv run pytest -q                # 全量测试
+uv run ruff check src tests     # 静态检查
+uv run mypy src/boss_agent_cli  # 类型检查
+```
 
-<a href="https://github.com/can4hou6joeng4/boss-agent-cli/graphs/contributors">
-  <img src="./CONTRIBUTORS.svg" alt="贡献者" width="1000" />
-</a>
+> 项目验证命令统一使用 `uv run`，不要直接使用系统 `pytest`。
 
-## ❤️ 支持
+## 🩺 常见问题与排障
 
-- 如果它帮到了你，最直接的支持是点一个 [Star ⭐](https://github.com/can4hou6joeng4/boss-agent-cli)，或分享给正在找工作的人。
-- 用出问题、有新想法，欢迎提 [Issue](https://github.com/can4hou6joeng4/boss-agent-cli/issues)；想动手就直接上 PR。
-- 想看看船队的其他船，欢迎靠泊母港 [bobochang.cn](https://bobochang.cn) 🧭，航海记录在[掘金专栏](https://juejin.cn/user/1187904004821262)。
+**Q：「显示未登录」但 BOSS 页面实际已登录？**
+控制台连接的未必是实际登录的 Chrome 会话。检查 CDP 端口是否变化、Chrome 是否被重启、数据目录是否一致、Cookie 是否过期，然后重新探测 / 登录。
 
-本项目受益于 [geekgeekrun](https://github.com/geekgeekrun/geekgeekrun) · [boss-cli](https://github.com/jackwener/boss-cli) · [opencli](https://github.com/jackwener/opencli)，一并致谢。
+**Q：同步沟通列表超时？**
+确认 BOSS 页面在沟通列表、岗位筛选正确、CDP 会话未被其他任务占用；失败时保留最后一次成功快照，不把旧数据伪装成新结果。连续失败运行 `uv run boss doctor --live-probe`。
 
-## ⭐ Star History
+**Q：一直轮询、不进入下一步？**
+检查候选人阶段：是否已发问题但无回复、是否已索要附件但未发送、附件确认 / 下载是否失败、消息游标是否未更新。等待中的候选人不应阻塞队列。
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/star-history-dark.svg">
-  <img alt="Star History" src="docs/assets/star-history.svg" width="100%">
-</picture>
+**Q：专业 / 非专业问题重复发送？**
+去重不能只看页面文本，需结合「岗位 + 候选人」状态键、我方最近问题、对方回答位置、问题指纹与配置版本。
 
-由 [mystarhistory](https://github.com/carsteneu/mystarhistory) 本地生成的静态 SVG，与仓库同源、不依赖第三方服务。
+**Q：点击暂停后仍在运行？**
+暂停是协作式停止，当前原子动作可能完成。若持续产生新动作，检查是否有旧服务进程或重复启动的控制台，关闭后重启单个服务。
+
+> 更多排障细节见 [docs/交接文档.md](docs/交接文档.md)。
+
+## 🗺️ 未来规划
+
+- **自动化可靠性**：消息 / 附件 / 推进三队列拆分、任务心跳与 watchdog、checkpoint 恢复。
+- **简历处理**：附件独立状态机与重试、文件哈希去重、历史简历快照、来源标签。
+- **岗位配置与评分**：配置版本对比回滚、硬条件冲突逐字段差异、评分解释示例与人工复核。
+- **UI 与可观测性**：统一按钮状态、候选人级事件时间线、自动化顶部总览、任务报告导出。
+- **测试与发布**：真实 Chrome/CDP 受控冒烟、压力与恢复场景、发布前自动检查敏感数据。
 
 ## ⚠️ 免责声明
 
-本项目仅用于学习交流和本地辅助，使用时请遵守相关法律法规、BOSS 直聘平台用户协议和隐私政策。默认低风险模式会阻断自动触达、批量操作、规避风控和候选人个人信息处理链路；任何投递、沟通、联系方式交换、招聘者候选人处理都应回到平台官网由用户手动完成。因不当使用产生的一切后果由使用者自行承担，与本项目作者无关。
+本项目仅用于**个人学习与技术交流**。自动化打招呼、消息发送、简历下载、联系方式交换与面试邀约等操作可能违反 BOSS 直聘平台用户协议，请务必遵守相关法律法规与平台规则、谨慎使用，并**自行承担由此产生的一切后果**。建议控制操作频率、保留人工复核环节，避免影响账号正常使用。本项目不绕过登录、验证码、风控或安全页，遇到账号风险或安全拦截会立即停止访问。
 
-## 📑 许可证 & 友情链接
+## 🙏 致谢
 
-[MIT](LICENSE) © [can4hou6joeng4](https://github.com/can4hou6joeng4) · 友链 [LINUX DO](https://linux.do/)
+本项目 fork 自 [boss-agent-cli](https://github.com/can4hou6joeng4/boss-agent-cli)（MIT License），感谢原作者的工作；核心 RPA 实现已独立重写。
+
+## 📄 许可证
+
+[MIT](LICENSE)
